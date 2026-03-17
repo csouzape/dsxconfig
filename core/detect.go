@@ -8,7 +8,6 @@ import (
 
 type Distro string
 
-// supported distros
 const (
 	Arch    Distro = "arch"
 	Debian  Distro = "debian"

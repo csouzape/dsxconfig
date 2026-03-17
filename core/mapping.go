@@ -41,7 +41,7 @@ var packageMapping = map[string]PackageMap{
 	"mangohud":    {Arch: "mangohud", Debian: "mangohud", Fedora: "mangohud"},
 }
 
-// MapPackage receives a package name and target distro, returns the equivalent name
+
 func MapPackage(name string, target Distro) string {
 	for _, m := range packageMapping {
 		if m.Arch == name || m.Debian == name || m.Fedora == name {

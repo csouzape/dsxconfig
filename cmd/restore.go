@@ -44,26 +44,21 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 		installedPkgs, failedPkgs = core.InstallPackages(sys.Distro, meta.Packages)
 	}
 
+	var installedAUR, failedAUR []string
+	if len(meta.AUR) > 0 {
+		fmt.Printf("  Installing %d AUR packages...\n", len(meta.AUR))
+		installedAUR, failedAUR = core.InstallAURPackages(meta.AUR)
+	}
+
 	var installedFp, failedFp []string
 	if len(meta.Flatpak) > 0 {
 		fmt.Printf("  Installing %d Flatpak apps...\n", len(meta.Flatpak))
 		installedFp, failedFp = core.InstallFlatpak(meta.Flatpak)
 	}
 
-	home, _ := os.UserHomeDir()
-	configsDir := filepath.Join(staging, "configs")
-	restoredConfigs := false
-	if _, err := os.Stat(configsDir); err == nil {
-		fmt.Println("  Restoring config files...")
-		if err := core.RestoreConfigs(configsDir, home); err != nil {
-			fmt.Printf("  [warn] Config restore error: %v\n", err)
-		} else {
-			restoredConfigs = true
-		}
-	}
-
-	allFailed := append(failedPkgs, failedFp...)
+	allFailed := append(append(failedPkgs, failedAUR...), failedFp...)
 	if len(allFailed) > 0 {
+		home, _ := os.UserHomeDir()
 		logPath := filepath.Join(home, "dsxconfig-not_found.log")
 		_ = os.WriteFile(logPath, []byte(strings.Join(allFailed, "\n")), 0644)
 		fmt.Printf("\n  [warn] %d items not found — see %s\n", len(allFailed), logPath)
@@ -71,10 +66,10 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 
 	fmt.Println("\n  ─────────────────────────────────────────")
 	fmt.Printf("  ✓  %d packages installed\n", len(installedPkgs))
-	fmt.Printf("  ✓  %d Flatpak apps installed\n", len(installedFp))
-	if restoredConfigs {
-		fmt.Println("  ✓  configs restored")
+	if len(meta.AUR) > 0 {
+		fmt.Printf("  ✓  %d AUR packages installed\n", len(installedAUR))
 	}
+	fmt.Printf("  ✓  %d Flatpak apps installed\n", len(installedFp))
 	if len(allFailed) > 0 {
 		fmt.Printf("  ✗  %d not found → dsxconfig-not_found.log\n", len(allFailed))
 	}

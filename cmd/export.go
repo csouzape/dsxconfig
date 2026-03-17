@@ -23,7 +23,6 @@ type Metadata struct {
 	Packages []string `json:"packages"`
 	AUR      []string `json:"aur_packages"`
 	Flatpak  []string `json:"flatpak"`
-	Configs  []string `json:"configs"`
 }
 
 func RunExport(sys core.SystemInfo) error {
@@ -32,7 +31,6 @@ func RunExport(sys core.SystemInfo) error {
 
 	var packages, aurPackages, flatpaks []string
 
-	// Ask what to save
 	if confirm(fmt.Sprintf("  Save %s packages?", sys.PkgMgr)) {
 		fmt.Printf("  Collecting %s packages...\n", sys.PkgMgr)
 		pkgs, err := core.ExportPackages(sys.Distro)
@@ -68,13 +66,6 @@ func RunExport(sys core.SystemInfo) error {
 		}
 	}
 
-	// Config files
-	fmt.Println("\n  Select config files to backup (TAB to select, ENTER to confirm):")
-	selectedConfigs, err := selectConfigs()
-	if err != nil {
-		return fmt.Errorf("config selection failed: %w", err)
-	}
-
 	hostname, _ := os.Hostname()
 	meta := Metadata{
 		Version:  "1.0.0",
@@ -84,27 +75,26 @@ func RunExport(sys core.SystemInfo) error {
 		Packages: packages,
 		AUR:      aurPackages,
 		Flatpak:  flatpaks,
-		Configs:  selectedConfigs,
 	}
 
 	home, _ := os.UserHomeDir()
-	archivePath, err := createArchive(meta, selectedConfigs, home)
+	archivePath, err := createArchive(meta, home)
 	if err != nil {
 		return fmt.Errorf("failed to create archive: %w", err)
 	}
 
 	fmt.Printf("\n  ✓ Export complete: %s\n", archivePath)
-	fmt.Printf("  ✓ %d packages  ·  %d AUR  ·  %d Flatpak  ·  %d configs\n\n",
-		len(packages), len(aurPackages), len(flatpaks), len(selectedConfigs))
+	fmt.Printf("  ✓ %d packages  ·  %d AUR  ·  %d Flatpak\n\n",
+		len(packages), len(aurPackages), len(flatpaks))
 	return nil
 }
 
 func confirm(prompt string) bool {
-	result, _ := runFzfInline([]string{"Yes", "No"}, prompt, "")
+	result, _ := runFzfInline([]string{"Yes", "No"}, prompt)
 	return result == "Yes"
 }
 
-func runFzfInline(items []string, prompt, header string) (string, error) {
+func runFzfInline(items []string, prompt string) (string, error) {
 	tmpIn, _ := os.CreateTemp("", "dsxconfig-in-*")
 	tmpOut, _ := os.CreateTemp("", "dsxconfig-out-*")
 	defer os.Remove(tmpIn.Name())
@@ -118,21 +108,16 @@ func runFzfInline(items []string, prompt, header string) (string, error) {
 	outFile, _ := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
 	defer outFile.Close()
 
-	args := []string{
-		"--header=↑↓ navigate   Enter select   Esc skip",
-		"--prompt=" + prompt + " ",
+	fzfCmd := exec.Command("fzf",
+		"--prompt="+prompt+"  ",
 		"--height=6",
 		"--layout=reverse",
 		"--border=rounded",
 		"--pointer=▶",
 		"--color=bg:#121212,bg+:#1e1e1e,fg:#d1d1d1,fg+:#ffffff,hl:#89b4fa,prompt:#cba6f7,pointer:#f38ba8,border:#2a2a2a",
 		"--no-info",
-	}
-	if header != "" {
-		args = append(args, "--header="+header)
-	}
-
-	fzfCmd := exec.Command("fzf", args...)
+		"--header=  ↑↓ navigate   Enter select",
+	)
 	fzfCmd.Stdin = inFile
 	fzfCmd.Stdout = outFile
 	fzfCmd.Stderr = os.Stderr
@@ -142,62 +127,7 @@ func runFzfInline(items []string, prompt, header string) (string, error) {
 	return strings.TrimSpace(string(result)), nil
 }
 
-func selectConfigs() ([]string, error) {
-	candidates := core.DefaultConfigPaths()
-	var existing []string
-	for _, p := range candidates {
-		if _, err := os.Stat(p); err == nil {
-			existing = append(existing, p)
-		}
-	}
-	if len(existing) == 0 {
-		fmt.Println("  No config files found.")
-		return nil, nil
-	}
-
-	tmpIn, _ := os.CreateTemp("", "dsxconfig-in-*")
-	tmpOut, _ := os.CreateTemp("", "dsxconfig-out-*")
-	defer os.Remove(tmpIn.Name())
-	defer os.Remove(tmpOut.Name())
-
-	tmpIn.WriteString(strings.Join(existing, "\n"))
-	tmpIn.Close()
-
-	inFile, _ := os.Open(tmpIn.Name())
-	defer inFile.Close()
-	outFile, _ := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
-	defer outFile.Close()
-
-	fzfCmd := exec.Command("fzf", "-m",
-		"--prompt=  configs > ",
-		"--header=[TAB] select   [ENTER] confirm   [ESC] skip configs",
-		"--height=12",
-		"--layout=reverse",
-		"--border=rounded",
-		"--pointer=▶",
-		"--color=bg:#121212,bg+:#1e1e1e,fg:#d1d1d1,fg+:#ffffff,hl:#89b4fa,prompt:#cba6f7,pointer:#f38ba8,marker:#a6e3a1,header:#f9e2af,border:#2a2a2a",
-		"--no-info",
-	)
-	fzfCmd.Stdin = inFile
-	fzfCmd.Stdout = outFile
-	fzfCmd.Stderr = os.Stderr
-	fzfCmd.Run()
-
-	result, _ := os.ReadFile(tmpOut.Name())
-	home, _ := os.UserHomeDir()
-	var selected []string
-	for _, line := range strings.Split(string(result), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		rel := strings.TrimPrefix(line, home+"/")
-		selected = append(selected, rel)
-	}
-	return selected, nil
-}
-
-func createArchive(meta Metadata, configPaths []string, outDir string) (string, error) {
+func createArchive(meta Metadata, outDir string) (string, error) {
 	filename := fmt.Sprintf("dsxconfig-%s.tar.gz", time.Now().Format("2006-01-02"))
 	outPath := filepath.Join(outDir, filename)
 
@@ -216,24 +146,19 @@ func createArchive(meta Metadata, configPaths []string, outDir string) (string, 
 	if err != nil {
 		return "", err
 	}
-	if err := writeBytesToTar(tw, "metadata.json", metaBytes); err != nil {
+
+	hdr := &tar.Header{Name: "metadata.json", Mode: 0644, Size: int64(len(metaBytes))}
+	if err := tw.WriteHeader(hdr); err != nil {
 		return "", err
 	}
-
-	home, _ := os.UserHomeDir()
-	for _, rel := range configPaths {
-		src := filepath.Join(home, rel)
-		if _, err := os.Lstat(src); err != nil {
-			continue
-		}
-		if err := addPathToTar(tw, src, filepath.Join("configs", rel)); err != nil {
-			fmt.Printf("  [warn] could not add %s: %v\n", rel, err)
-		}
+	if _, err := tw.Write(metaBytes); err != nil {
+		return "", err
 	}
 
 	return outPath, nil
 }
 
+// writeBytesToTar kept for future use
 func writeBytesToTar(tw *tar.Writer, name string, data []byte) error {
 	hdr := &tar.Header{Name: name, Mode: 0644, Size: int64(len(data))}
 	if err := tw.WriteHeader(hdr); err != nil {
@@ -243,6 +168,7 @@ func writeBytesToTar(tw *tar.Writer, name string, data []byte) error {
 	return err
 }
 
+// addPathToTar kept for future use (configs - v1.2.0)
 func addPathToTar(tw *tar.Writer, src, dst string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -274,24 +200,20 @@ func addPathToTar(tw *tar.Writer, src, dst string) error {
 				Mode:     int64(info.Mode()),
 			})
 		}
-		f, err := os.Open(path)
+		file, err := os.Open(path)
 		if err != nil {
 			return nil
 		}
-		defer f.Close()
-		stat, err := f.Stat()
+		defer file.Close()
+		stat, err := file.Stat()
 		if err != nil {
 			return nil
 		}
-		hdr := &tar.Header{
-			Name: tarPath,
-			Mode: int64(info.Mode()),
-			Size: stat.Size(),
-		}
+		hdr := &tar.Header{Name: tarPath, Mode: int64(info.Mode()), Size: stat.Size()}
 		if err := tw.WriteHeader(hdr); err != nil {
 			return err
 		}
-		_, err = io.Copy(tw, f)
+		_, err = io.Copy(tw, file)
 		return err
 	})
 }

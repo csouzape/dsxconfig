@@ -5,10 +5,9 @@ import (
 	"strings"
 )
 
-// ExportFlatpak returns installed Flatpak app IDs
 func ExportFlatpak() ([]string, error) {
 	if _, err := exec.LookPath("flatpak"); err != nil {
-		return nil, nil // flatpak not installed, skip silently
+		return nil, nil 
 	}
 
 	out, err := exec.Command("flatpak", "list", "--app", "--columns=application").Output()
@@ -26,7 +25,6 @@ func ExportFlatpak() ([]string, error) {
 	return apps, nil
 }
 
-// InstallFlatpak installs a list of Flatpak app IDs from Flathub
 func InstallFlatpak(apps []string) (installed []string, notFound []string) {
 	for _, app := range apps {
 		cmd := exec.Command("flatpak", "install", "-y", "flathub", app)
