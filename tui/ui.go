@@ -82,18 +82,36 @@ func selectArchive() (string, error) {
 }
 
 func runFzf(items []string, prompt, header, height string) (string, error) {
-	tmpIn, _ := os.CreateTemp("", "dsxconfig-in-*")
-	tmpOut, _ := os.CreateTemp("", "dsxconfig-out-*")
+	tmpIn, err := os.CreateTemp("", "dsxconfig-in-*")
+	if err != nil {
+		return "", err
+	}
+	tmpOut, err := os.CreateTemp("", "dsxconfig-out-*")
+	if err != nil {
+		_ = os.Remove(tmpIn.Name())
+		return "", err
+	}
 	defer os.Remove(tmpIn.Name())
 	defer os.Remove(tmpOut.Name())
 
-	tmpIn.WriteString(strings.Join(items, "\n"))
-	tmpIn.Close()
+	if _, err := tmpIn.WriteString(strings.Join(items, "\n")); err != nil {
+		tmpIn.Close()
+		return "", err
+	}
+	if err := tmpIn.Close(); err != nil {
+		return "", err
+	}
 
-	inFile, _ := os.Open(tmpIn.Name())
+	inFile, err := os.Open(tmpIn.Name())
+	if err != nil {
+		return "", err
+	}
 	defer inFile.Close()
 
-	outFile, _ := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
+	outFile, err := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
+	if err != nil {
+		return "", err
+	}
 	defer outFile.Close()
 
 	fzfCmd := exec.Command("fzf",
@@ -109,9 +127,14 @@ func runFzf(items []string, prompt, header, height string) (string, error) {
 	fzfCmd.Stdin = inFile
 	fzfCmd.Stdout = outFile
 	fzfCmd.Stderr = os.Stderr
-	fzfCmd.Run()
+	if err := fzfCmd.Run(); err != nil {
+		return "", err
+	}
 
-	result, _ := os.ReadFile(tmpOut.Name())
+	result, err := os.ReadFile(tmpOut.Name())
+	if err != nil {
+		return "", err
+	}
 	return strings.TrimSpace(string(result)), nil
 }
 
