@@ -35,30 +35,35 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 
 	if meta.Distro != string(sys.Distro) {
 		fmt.Printf("  [warn] Source distro (%s) differs from current (%s)\n", meta.Distro, sys.Distro)
-		fmt.Println("         Will attempt cross-distro package mapping.\n")
+		fmt.Println("         Will attempt cross-distro package mapping.")
 	}
 
-	var installedPkgs, failedPkgs []string
+	var installedPkgs, failedPkgs, skippedPkgs []string
 	if len(meta.Packages) > 0 {
-		fmt.Printf("  Installing %d packages...\n", len(meta.Packages))
-		installedPkgs, failedPkgs = core.InstallPackages(sys.Distro, meta.Packages)
-	}
-
-	var installedAUR, failedAUR []string
-	if len(meta.AUR) > 0 {
-		fmt.Printf("  Installing %d AUR packages...\n", len(meta.AUR))
-		installedAUR, failedAUR = core.InstallAURPackages(meta.AUR)
+		if sys.Distro == core.Unknown {
+			fmt.Println("  [warn] Unsupported distro for package restore. Skipping packages.")
+		} else {
+			fmt.Printf("  Checking %d packages...\n", len(meta.Packages))
+			installedPkgs, failedPkgs, skippedPkgs = core.InstallPackages(sys.Distro, meta.Packages)
+			if len(skippedPkgs) > 0 {
+				fmt.Printf("  Skipping %d package(s) already installed.\n", len(skippedPkgs))
+			}
+		}
 	}
 
 	var installedFp, failedFp []string
 	if len(meta.Flatpak) > 0 {
-		fmt.Printf("  Installing %d Flatpak apps...\n", len(meta.Flatpak))
-		installedFp, failedFp = core.InstallFlatpak(meta.Flatpak)
+		if !core.HasFlatpak() {
+			fmt.Println("  [warn] Flatpak not found. Skipping Flatpak restore.")
+		} else {
+			fmt.Printf("  Installing %d Flatpak apps...\n", len(meta.Flatpak))
+			installedFp, failedFp = core.InstallFlatpak(meta.Flatpak)
+		}
 	}
 
-	allFailed := append(append(failedPkgs, failedAUR...), failedFp...)
+	home, _ := os.UserHomeDir()
+	allFailed := append(failedPkgs, failedFp...)
 	if len(allFailed) > 0 {
-		home, _ := os.UserHomeDir()
 		logPath := filepath.Join(home, "dsxconfig-not_found.log")
 		_ = os.WriteFile(logPath, []byte(strings.Join(allFailed, "\n")), 0644)
 		fmt.Printf("\n  [warn] %d items not found — see %s\n", len(allFailed), logPath)
@@ -66,14 +71,13 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 
 	fmt.Println("\n  ─────────────────────────────────────────")
 	fmt.Printf("  ✓  %d packages installed\n", len(installedPkgs))
-	if len(meta.AUR) > 0 {
-		fmt.Printf("  ✓  %d AUR packages installed\n", len(installedAUR))
-	}
+	fmt.Printf("  -  %d packages already installed (skipped)\n", len(skippedPkgs))
 	fmt.Printf("  ✓  %d Flatpak apps installed\n", len(installedFp))
 	if len(allFailed) > 0 {
 		fmt.Printf("  ✗  %d not found → dsxconfig-not_found.log\n", len(allFailed))
 	}
-	fmt.Println("  ─────────────────────────────────────────\n")
+	fmt.Println("  ─────────────────────────────────────────")
+	fmt.Println()
 	return nil
 }
 
@@ -103,18 +107,39 @@ func extractArchive(archivePath string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		target := filepath.Join(tmpDir, hdr.Name)
-		if hdr.Typeflag == tar.TypeDir {
-			os.MkdirAll(target, os.FileMode(hdr.Mode))
+		name := filepath.Clean(hdr.Name)
+		if name == "." || name == "" {
 			continue
 		}
-		os.MkdirAll(filepath.Dir(target), 0755)
-		out, err := os.Create(target)
-		if err != nil {
-			continue
+		if filepath.IsAbs(name) || name == ".." || strings.HasPrefix(name, ".."+string(os.PathSeparator)) {
+			return "", fmt.Errorf("invalid path in archive: %s", hdr.Name)
 		}
-		io.Copy(out, tr)
-		out.Close()
+		target := filepath.Join(tmpDir, name)
+		if !strings.HasPrefix(target, tmpDir+string(os.PathSeparator)) && target != tmpDir {
+			return "", fmt.Errorf("invalid path in archive: %s", hdr.Name)
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(target, os.FileMode(hdr.Mode)); err != nil {
+				return "", err
+			}
+		case tar.TypeReg, tar.TypeRegA:
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				return "", err
+			}
+			out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
+			if err != nil {
+				return "", err
+			}
+			if _, err := io.Copy(out, tr); err != nil {
+				out.Close()
+				return "", err
+			}
+			if err := out.Close(); err != nil {
+				return "", err
+			}
+		}
 	}
 	return tmpDir, nil
 }

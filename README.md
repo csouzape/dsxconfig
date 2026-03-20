@@ -21,9 +21,9 @@
 
 ## What is dsxconfig?
 
-`dsxconfig` is a TUI tool that exports your Linux system configuration — installed packages, Flatpak apps, and dotfiles — into a single portable archive. Restore everything on a new machine in one run.
+`dsxconfig` is a TUI tool that exports your Linux system package setup — installed packages and Flatpak apps — into a single portable archive. Restore everything on a new machine in one run.
 
-No full disk images. No 400GB clones. Just your packages and configs.
+No full disk images. No 400GB clones. Just your packages.
 
 Part of the **DSX** ecosystem — *Direct System eXtensions*.
 
@@ -35,7 +35,6 @@ Part of the **DSX** ecosystem — *Direct System eXtensions*.
 - **Smart export** — captures only explicitly installed packages, not base dependencies
 - **Cross-distro restore** — installs what it can, logs what it can't
 - **Flatpak support** — exports and restores your Flatpak apps
-- **Dotfile backup** — select config dirs and dotfiles interactively
 - **Single binary** — no runtime dependencies, written in Go
 - **Transparent** — generates `not_found.log` and a final summary
 
@@ -79,23 +78,16 @@ dsxconfig
 ```
 
 From the TUI you can:
-- **Export** — select packages, Flatpak apps and config files to backup
-- **Restore** — point to an existing archive and restore everything
+- **Export** — select packages and Flatpak apps to backup
+- **Restore** — point to an existing archive and restore packages/apps
 
 ---
 
 ## Export archive format
 
-```
+``` 
 dsxconfig-2026-03-15.tar.gz
-├── metadata.json       # distro, date, hostname, dsxconfig version
-├── packages.txt        # explicit package list
-├── flatpak.txt         # installed Flatpak app IDs
-└── configs/            # selected dotfiles and config directories
-    ├── .zshrc
-    ├── .bashrc
-    └── .config/
-        └── ...
+└── metadata.json       # distro, date, hostname, version, packages, aur, flatpak
 ```
 
 ---
@@ -106,8 +98,8 @@ At the end of a restore run, dsxconfig shows:
 
 ```
   ✓  142 packages installed
+  -  36 packages already installed (skipped)
   ✓  9 Flatpak apps installed
-  ✓  configs restored
   ✗  8 packages not found → see not_found.log
 ```
 
@@ -125,7 +117,6 @@ dsxconfig/
 │   ├── detect.go       # distro detection
 │   ├── packages.go     # package list export/install
 │   ├── flatpak.go      # flatpak export/install
-│   ├── configs.go      # dotfile backup/restore
 │   └── mapping.go      # cross-distro package name mapping
 ├── tui/
 │   └── ui.go           # interactive TUI

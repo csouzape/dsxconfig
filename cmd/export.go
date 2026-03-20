@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,40 +89,71 @@ func RunExport(sys core.SystemInfo) error {
 }
 
 func confirm(prompt string) bool {
-	result, _ := runFzfInline([]string{"Yes", "No"}, prompt)
+	result, err := runFzfInline([]string{"Yes", "No"}, prompt, "")
+	if err != nil {
+		return false
+	}
 	return result == "Yes"
 }
 
-func runFzfInline(items []string, prompt string) (string, error) {
-	tmpIn, _ := os.CreateTemp("", "dsxconfig-in-*")
-	tmpOut, _ := os.CreateTemp("", "dsxconfig-out-*")
+func runFzfInline(items []string, prompt, header string) (string, error) {
+	tmpIn, err := os.CreateTemp("", "dsxconfig-in-*")
+	if err != nil {
+		return "", err
+	}
+	tmpOut, err := os.CreateTemp("", "dsxconfig-out-*")
+	if err != nil {
+		_ = os.Remove(tmpIn.Name())
+		return "", err
+	}
 	defer os.Remove(tmpIn.Name())
 	defer os.Remove(tmpOut.Name())
 
-	tmpIn.WriteString(strings.Join(items, "\n"))
-	tmpIn.Close()
+	if _, err := tmpIn.WriteString(strings.Join(items, "\n")); err != nil {
+		tmpIn.Close()
+		return "", err
+	}
+	if err := tmpIn.Close(); err != nil {
+		return "", err
+	}
 
-	inFile, _ := os.Open(tmpIn.Name())
+	inFile, err := os.Open(tmpIn.Name())
+	if err != nil {
+		return "", err
+	}
 	defer inFile.Close()
-	outFile, _ := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
+	outFile, err := os.OpenFile(tmpOut.Name(), os.O_WRONLY, 0600)
+	if err != nil {
+		return "", err
+	}
 	defer outFile.Close()
 
-	fzfCmd := exec.Command("fzf",
-		"--prompt="+prompt+"  ",
+	args := []string{
+		"--header=↑↓ navigate   Enter select   Esc skip",
+		"--prompt=" + prompt + " ",
 		"--height=6",
 		"--layout=reverse",
 		"--border=rounded",
 		"--pointer=▶",
 		"--color=bg:#121212,bg+:#1e1e1e,fg:#d1d1d1,fg+:#ffffff,hl:#89b4fa,prompt:#cba6f7,pointer:#f38ba8,border:#2a2a2a",
 		"--no-info",
-		"--header=  ↑↓ navigate   Enter select",
-	)
+	}
+	if header != "" {
+		args = append(args, "--header="+header)
+	}
+
+	fzfCmd := exec.Command("fzf", args...)
 	fzfCmd.Stdin = inFile
 	fzfCmd.Stdout = outFile
 	fzfCmd.Stderr = os.Stderr
-	fzfCmd.Run()
+	if err := fzfCmd.Run(); err != nil {
+		return "", err
+	}
 
-	result, _ := os.ReadFile(tmpOut.Name())
+	result, err := os.ReadFile(tmpOut.Name())
+	if err != nil {
+		return "", err
+	}
 	return strings.TrimSpace(string(result)), nil
 }
 
@@ -146,19 +176,13 @@ func createArchive(meta Metadata, outDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	hdr := &tar.Header{Name: "metadata.json", Mode: 0644, Size: int64(len(metaBytes))}
-	if err := tw.WriteHeader(hdr); err != nil {
-		return "", err
-	}
-	if _, err := tw.Write(metaBytes); err != nil {
+	if err := writeBytesToTar(tw, "metadata.json", metaBytes); err != nil {
 		return "", err
 	}
 
 	return outPath, nil
 }
 
-// writeBytesToTar kept for future use
 func writeBytesToTar(tw *tar.Writer, name string, data []byte) error {
 	hdr := &tar.Header{Name: name, Mode: 0644, Size: int64(len(data))}
 	if err := tw.WriteHeader(hdr); err != nil {
@@ -166,54 +190,4 @@ func writeBytesToTar(tw *tar.Writer, name string, data []byte) error {
 	}
 	_, err := tw.Write(data)
 	return err
-}
-
-// addPathToTar kept for future use (configs - v1.2.0)
-func addPathToTar(tw *tar.Writer, src, dst string) error {
-	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
-		if info.IsDir() && info.Name() == ".git" {
-			return filepath.SkipDir
-		}
-		rel, _ := filepath.Rel(src, path)
-		tarPath := dst
-		if rel != "." {
-			tarPath = filepath.Join(dst, rel)
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			linkTarget, err := os.Readlink(path)
-			if err != nil {
-				return nil
-			}
-			return tw.WriteHeader(&tar.Header{
-				Typeflag: tar.TypeSymlink,
-				Name:     tarPath,
-				Linkname: linkTarget,
-			})
-		}
-		if info.IsDir() {
-			return tw.WriteHeader(&tar.Header{
-				Typeflag: tar.TypeDir,
-				Name:     tarPath + "/",
-				Mode:     int64(info.Mode()),
-			})
-		}
-		file, err := os.Open(path)
-		if err != nil {
-			return nil
-		}
-		defer file.Close()
-		stat, err := file.Stat()
-		if err != nil {
-			return nil
-		}
-		hdr := &tar.Header{Name: tarPath, Mode: int64(info.Mode()), Size: stat.Size()}
-		if err := tw.WriteHeader(hdr); err != nil {
-			return err
-		}
-		_, err = io.Copy(tw, file)
-		return err
-	})
 }
