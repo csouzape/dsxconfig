@@ -12,7 +12,7 @@ func ExportPackages(distro Distro) ([]string, error) {
 
 	switch distro {
 	case Arch:
-		cmd = exec.Command("pacman", "-Qe")
+		cmd = exec.Command("pacman", "-Qn")
 	case Debian:
 		cmd = exec.Command("apt-mark", "showmanual")
 	case Fedora:

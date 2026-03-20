@@ -67,7 +67,7 @@ func RunExport(sys core.SystemInfo) error {
 
 	hostname, _ := os.Hostname()
 	meta := Metadata{
-		Version:  "1.1.0",
+		Version:  "1.0.0",
 		Distro:   string(sys.Distro),
 		Date:     time.Now().Format(time.RFC1123),
 		Hostname: hostname,
