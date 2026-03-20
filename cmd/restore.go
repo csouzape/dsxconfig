@@ -35,7 +35,7 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 
 	if meta.Distro != string(sys.Distro) {
 		fmt.Printf("  [warn] Source distro (%s) differs from current (%s)\n", meta.Distro, sys.Distro)
-		fmt.Println("         Will attempt cross-distro package mapping.\n")
+		fmt.Println("         Will attempt cross-distro package mapping.")
 	}
 
 	var installedPkgs, failedPkgs, skippedPkgs []string
@@ -76,7 +76,8 @@ func RunRestore(archivePath string, sys core.SystemInfo) error {
 	if len(allFailed) > 0 {
 		fmt.Printf("  ✗  %d not found → dsxconfig-not_found.log\n", len(allFailed))
 	}
-	fmt.Println("  ─────────────────────────────────────────\n")
+	fmt.Println("  ─────────────────────────────────────────")
+	fmt.Println()
 	return nil
 }
 
