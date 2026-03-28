@@ -1,5 +1,14 @@
 import subprocess
 
+EXCLUDE_PREFIXES = (
+    "kernel", "grub2", "systemd", "glibc", "dracut",
+    "plymouth", "shim", "selinux", "firmware", "microcode"
+)
+
+def _filter_packages(packages):
+    return [p for p in packages
+            if not any(p.startswith(prefix) for prefix in EXCLUDE_PREFIXES)]
+
 def export_packages(distro):
     if distro == "arch":
         cmd = ["pacman", "-Qn"]
@@ -14,6 +23,8 @@ def export_packages(distro):
     lines = result.stdout.splitlines()
 
     if distro == "arch":
-        return [line.split()[0] for line in lines if line.strip()]
+        packages = [line.split()[0] for line in lines if line.strip()]
     else:
-        return [line.strip() for line in lines if line.strip()]
+        packages = [line.strip() for line in lines if line.strip()]
+
+    return _filter_packages(packages)
