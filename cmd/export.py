@@ -195,7 +195,7 @@ log_error() {{
 # Step 1: Update system
 log_info "Updating system repositories..."
 UPDATE_CMD=$(get_update_command)
-if ! $UPDATE_CMD; then
+if ! eval "$UPDATE_CMD"; then
     log_error "Failed to update system"
     exit 1
 fi
