@@ -26,6 +26,7 @@ class Distribution(Enum):
     CENTOS = "centos"
     DEBIAN = "debian"
     UBUNTU = "ubuntu"
+    LINUXMINT = "linuxmint"
     UNKNOWN = "unknown"
 
 
@@ -45,6 +46,7 @@ UPDATE_COMMANDS: Dict[str, str] = {
     "centos": "sudo dnf update -y",
     "debian": "sudo apt update && sudo apt upgrade -y",
     "ubuntu": "sudo apt update && sudo apt upgrade -y",
+    "linuxmint": "sudo apt update && sudo apt upgrade -y",
 }
 
 # Install commands per distro

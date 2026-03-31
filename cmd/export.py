@@ -124,9 +124,52 @@ class ScriptExporter:
 set -e  # Exit on error
 set -u  # Exit on undefined variable
 
+# System detection
+detect_system() {{
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        DISTRO_ID=$ID
+        PRETTY_NAME=$PRETTY_NAME
+    else
+        DISTRO_ID="unknown"
+        PRETTY_NAME="Unknown Linux"
+    fi
+
+    # Detect package manager
+    if command -v pacman >/dev/null 2>&1; then
+        PKG_MGR="pacman"
+    elif command -v apt >/dev/null 2>&1; then
+        PKG_MGR="apt"
+    elif command -v dnf >/dev/null 2>&1; then
+        PKG_MGR="dnf"
+    else
+        PKG_MGR="unknown"
+    fi
+}}
+
+get_update_command() {{
+    case "$DISTRO_ID" in
+        arch|archlinux)
+            echo "sudo pacman -Syu --noconfirm"
+            ;;
+        fedora|rhel|centos)
+            echo "sudo dnf update -y"
+            ;;
+        debian|ubuntu|linuxmint)
+            echo "sudo apt update && sudo apt upgrade -y"
+            ;;
+        *)
+            echo "echo 'No update command available for $DISTRO_ID'"
+            ;;
+    esac
+}}
+
+# Call detection
+detect_system
+
 echo "================================================"
 echo "  DSXConfig System Restoration"
-echo "  Target: {self.sys.name}"
+echo "  Target: $PRETTY_NAME"
 echo "================================================"
 echo ""
 
@@ -151,7 +194,8 @@ log_error() {{
 
 # Step 1: Update system
 log_info "Updating system repositories..."
-if ! {self._get_update_command()}; then
+UPDATE_CMD=$(get_update_command)
+if ! $UPDATE_CMD; then
     log_error "Failed to update system"
     exit 1
 fi
@@ -159,7 +203,7 @@ log_info "System update completed"
 echo ""
 
 # Adaptive package mapping for cross-distro resiliency
-TARGET_PKG_MGR="{self.sys.pkg_mgr}"
+TARGET_PKG_MGR="$PKG_MGR"
 
 map_package() {{
     local pkg="$1"
@@ -281,7 +325,7 @@ echo ""
 """
 
         # Add AUR section if applicable
-        if aur_packages and self.sys.distro in ["arch", "archlinux"]:
+        if aur_packages:
             script += self._build_aur_section(aur_packages)
 
         # Add Flatpak section
@@ -307,19 +351,23 @@ echo "================================================"
         """Build AUR installation section."""
         packages_str = self._quote_packages(aur_packages)
         return f"""# Step 3: Install AUR packages (Arch Linux)
-log_info "Installing {len(aur_packages)} AUR packages..."
-if command -v yay &> /dev/null; then
-    if ! yay -S --needed --noconfirm {packages_str}; then
-        log_warn "Some AUR packages may have failed to install"
+if [ "$DISTRO_ID" = "arch" ] || [ "$DISTRO_ID" = "archlinux" ]; then
+    log_info "Installing {len(aur_packages)} AUR packages..."
+    if command -v yay &> /dev/null; then
+        if ! yay -S --needed --noconfirm {packages_str}; then
+            log_warn "Some AUR packages may have failed to install"
+        fi
+        log_info "AUR package installation completed"
+    elif command -v paru &> /dev/null; then
+        if ! paru -S --needed --noconfirm {packages_str}; then
+            log_warn "Some AUR packages may have failed to install"
+        fi
+        log_info "AUR package installation completed (using paru)"
+    else
+        log_error "Neither yay nor paru found. Install an AUR helper to proceed."
     fi
-    log_info "AUR package installation completed"
-elif command -v paru &> /dev/null; then
-    if ! paru -S --needed --noconfirm {packages_str}; then
-        log_warn "Some AUR packages may have failed to install"
-    fi
-    log_info "AUR package installation completed (using paru)"
 else
-    log_error "Neither yay nor paru found. Install an AUR helper to proceed."
+    log_warn "AUR packages skipped (not Arch Linux)"
 fi
 echo ""
 """
