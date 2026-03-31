@@ -278,19 +278,6 @@ install_package() {{
     esac
 }}
 
-ask_install_choice() {{
-    local orig_pkg="$1"
-    local candidate_pkg="$2"
-
-    echo "Package '$orig_pkg' not found by default. Suggested candidate is '$candidate_pkg'."
-    read -p "Install candidate '$candidate_pkg'? [y/N] " answer
-    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-        echo "$candidate_pkg"
-    else
-        echo ""
-    fi
-}}
-
 PACKAGES=({self._quote_packages(packages)})
 
 # Step 2: Install native packages
@@ -304,16 +291,8 @@ if [ ${{#PACKAGES[@]}} -gt 0 ]; then
             if ! install_package "$candidate"; then
                 log_warn "Failed to install '$candidate'"
             fi
-            continue
-        fi
-
-        choice="$(ask_install_choice "$original" "$candidate")"
-        if [ -n "$choice" ]; then
-            if ! install_package "$choice"; then
-                log_warn "Failed to install chosen package '$choice'"
-            fi
         else
-            log_warn "Skipped package '$original'"
+            log_warn "Skipped package '$original' (not available as '$candidate')"
         fi
     done
     log_info "Native package installation completed"
