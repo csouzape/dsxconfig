@@ -79,13 +79,31 @@ class TUI:
             logger.error("fzf operation timed out")
             return None
         except FileNotFoundError:
-            logger.error(
-                "fzf not found. Please install it: "
-                "https://github.com/junegunn/fzf"
-            )
-            raise
+            logger.warning("fzf not found. Falling back to simple text selection.")
+            return TUI._simple_choice(items, prompt)
         except Exception as e:
             logger.error(f"Unexpected error in fzf: {e}")
+            return None
+
+    @staticmethod
+    def _simple_choice(items: List[str], prompt: str) -> Optional[str]:
+        """Simple selection fallback when fzf is unavailable."""
+        print("\n[fallback] fzf is not installed. Using standard input selection.")
+        for idx, item in enumerate(items, start=1):
+            print(f"  {idx}. {item}")
+        print("  0. Cancel")
+
+        try:
+            choice = input(f"{prompt} (enter number): ").strip()
+            if not choice.isdigit():
+                return None
+
+            index = int(choice)
+            if index <= 0 or index > len(items):
+                return None
+
+            return items[index - 1]
+        except (KeyboardInterrupt, EOFError):
             return None
 
     @staticmethod

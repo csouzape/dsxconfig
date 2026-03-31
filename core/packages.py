@@ -1,24 +1,66 @@
 """Package detection and retrieval module."""
 
 import subprocess
-from typing import List
-from constants import PKG_MGR_COMMANDS
+from typing import Dict, List
+from constants import PKG_MGR_COMMANDS, PACKAGE_NAME_MAP, IGNORED_PACKAGES
 from logger import get_logger
 
 logger = get_logger(__name__)
 
-__all__ = ["get_native_packages", "get_aur_packages", "get_flatpaks"]
+__all__ = [
+    "get_native_packages",
+    "get_aur_packages",
+    "get_flatpaks",
+    "map_package_name",
+    "map_packages_for_manager",
+]
+
+
+def map_package_name(package_name: str, target_pkg_mgr: str) -> str:
+    """
+    Return a target package name for the specified package manager.
+
+    Args:
+        package_name: Original package name from source system
+        target_pkg_mgr: Target package manager (e.g., pacman, apt, dnf)
+
+    Returns:
+        Package name to install on target system (fallback to original)
+    """
+    normalized = package_name.strip().lower()
+    if normalized in PACKAGE_NAME_MAP:
+        alias = PACKAGE_NAME_MAP[normalized].get(target_pkg_mgr)
+        if alias:
+            logger.debug(
+                f"Mapping package '{package_name}' -> '{alias}' for target manager {target_pkg_mgr}"
+            )
+            return alias
+    return package_name
+
+
+def map_packages_for_manager(packages: List[str], target_pkg_mgr: str) -> List[str]:
+    """
+    Convert a list of source packages to target package manager equivalents.
+
+    Args:
+        packages: Original package name list
+        target_pkg_mgr: Target package manager
+
+    Returns:
+        Converted package name list
+    """
+    return [map_package_name(pkg, target_pkg_mgr) for pkg in packages]
 
 
 def get_native_packages(pkg_mgr: str) -> List[str]:
     """
-    Get list of explicitly installed native packages.
+    Get list of explicitly installed native packages, filtering out system packages.
 
     Args:
         pkg_mgr: Package manager name (pacman, dnf, apt)
 
     Returns:
-        List of package names, empty list on error
+        List of package names (excluding system/base packages), empty list on error
     """
     if pkg_mgr not in PKG_MGR_COMMANDS:
         logger.warning(f"Unknown package manager: {pkg_mgr}")
@@ -33,9 +75,13 @@ def get_native_packages(pkg_mgr: str) -> List[str]:
             check=True,
             timeout=30,
         )
-        packages = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-        logger.info(f"Found {len(packages)} native packages ({pkg_mgr})")
-        return packages
+        all_packages = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        
+        # Filter out ignored packages (system base packages, kernels, drivers, etc.)
+        filtered_packages = [pkg for pkg in all_packages if pkg not in IGNORED_PACKAGES]
+        
+        logger.info(f"Found {len(all_packages)} total native packages, {len(filtered_packages)} after filtering ({pkg_mgr})")
+        return filtered_packages
 
     except subprocess.TimeoutExpired:
         logger.error(f"Timeout while fetching packages from {pkg_mgr}")

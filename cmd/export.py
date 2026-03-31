@@ -13,6 +13,7 @@ from constants import (
     SCRIPT_PERMISSIONS,
 )
 from core.detector import SystemInfo
+from core.config import SystemConfig
 from tui.interface import TUI
 from logger import get_logger
 
@@ -62,7 +63,7 @@ class ScriptExporter:
             return False
 
     def generate_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str]
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None
     ) -> Optional[str]:
         """
         Generate restoration script with all collected data.
@@ -71,6 +72,7 @@ class ScriptExporter:
             packages: List of native packages
             aur_packages: List of AUR packages
             flatpaks: List of Flatpak applications
+            system_config: Optional system configuration to include
 
         Returns:
             Path to generated script, None if generation failed
@@ -86,7 +88,7 @@ class ScriptExporter:
             raise ValueError("flatpaks must be a list")
 
         try:
-            script_content = self._build_script(packages, aur_packages, flatpaks)
+            script_content = self._build_script(packages, aur_packages, flatpaks, system_config)
             self._write_script(script_content)
             logger.info(f"Script generated successfully: {self.filename}")
             return self.filename
@@ -95,7 +97,7 @@ class ScriptExporter:
             return None
 
     def _build_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str]
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None
     ) -> str:
         """
         Build script content.
@@ -104,6 +106,7 @@ class ScriptExporter:
             packages: List of native packages
             aur_packages: List of AUR packages
             flatpaks: List of Flatpak applications
+            system_config: Optional system configuration to include
 
         Returns:
             Complete script content as string
@@ -155,16 +158,125 @@ fi
 log_info "System update completed"
 echo ""
 
-# Step 2: Install native packages
-if [ {len(packages)} -gt 0 ]; then
-    log_info "Installing {len(packages)} native packages ({self.sys.pkg_mgr})..."
-    if ! {self._get_install_command(packages)}; then
-        log_warn "Some packages may have failed to install"
+# Adaptive package mapping for cross-distro resiliency
+TARGET_PKG_MGR="{self.sys.pkg_mgr}"
+
+map_package() {{
+    local pkg="$1"
+    local target_pkg="$pkg"
+
+    case "$pkg" in
+        python)
+            if [ "$TARGET_PKG_MGR" = "pacman" ]; then
+                target_pkg="python"
+            else
+                target_pkg="python3"
+            fi
+            ;;
+        python-pip)
+            target_pkg="python3-pip";
+            ;;
+        libreoffice-fresh)
+            target_pkg="libreoffice";
+            ;;
+        docker)
+            if [ "$TARGET_PKG_MGR" = "apt" ]; then
+                target_pkg="docker.io"
+            else
+                target_pkg="docker"
+            fi
+            ;;
+        openssh)
+            target_pkg="openssh-server";
+            ;;
+        *)
+            target_pkg="$pkg";
+            ;;
+    esac
+
+    echo "$target_pkg"
+}}
+
+package_available() {{
+    local pkg="$1"
+    case "$TARGET_PKG_MGR" in
+        pacman)
+            pacman -Si "$pkg" >/dev/null 2>&1
+            ;;
+        apt)
+            apt-cache show "$pkg" >/dev/null 2>&1
+            ;;
+        dnf)
+            dnf list --available "$pkg" >/dev/null 2>&1
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}}
+
+install_package() {{
+    local pkg="$1"
+    case "$TARGET_PKG_MGR" in
+        pacman)
+            sudo pacman -S --needed --noconfirm "$pkg";
+            ;;
+        apt)
+            sudo apt install -y "$pkg";
+            ;;
+        dnf)
+            sudo dnf install -y "$pkg";
+            ;;
+        *)
+            log_error "Unsupported package manager: $TARGET_PKG_MGR";
+            return 1;
+            ;;
+    esac
+}}
+
+ask_install_choice() {{
+    local orig_pkg="$1"
+    local candidate_pkg="$2"
+
+    echo "Package '$orig_pkg' not found by default. Suggested candidate is '$candidate_pkg'."
+    read -p "Install candidate '$candidate_pkg'? [y/N] " answer
+    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+        echo "$candidate_pkg"
+    else
+        echo ""
     fi
+}}
+
+PACKAGES=({self._quote_packages(packages)})
+
+# Step 2: Install native packages
+if [ ${{#PACKAGES[@]}} -gt 0 ]; then
+    log_info "Installing ${{#PACKAGES[@]}} native packages ($TARGET_PKG_MGR) with adaptive mapping..."
+    for original in "${{PACKAGES[@]}}"; do
+        candidate="$(map_package "$original")"
+
+        if package_available "$candidate"; then
+            log_info "Installing resolved package '$candidate' for source '$original'"
+            if ! install_package "$candidate"; then
+                log_warn "Failed to install '$candidate'"
+            fi
+            continue
+        fi
+
+        choice="$(ask_install_choice "$original" "$candidate")"
+        if [ -n "$choice" ]; then
+            if ! install_package "$choice"; then
+                log_warn "Failed to install chosen package '$choice'"
+            fi
+        else
+            log_warn "Skipped package '$original'"
+        fi
+    done
     log_info "Native package installation completed"
 else
     log_warn "No native packages to install"
 fi
+
 echo ""
 """
 
@@ -175,6 +287,10 @@ echo ""
         # Add Flatpak section
         if flatpaks:
             script += self._build_flatpak_section(flatpaks)
+
+        # Add system configuration section
+        if system_config:
+            script += self._build_config_section(system_config)
 
         # Footer
         script += """
@@ -226,6 +342,65 @@ else
 fi
 echo ""
 """
+
+    def _build_config_section(self, system_config: SystemConfig) -> str:
+        """Build system configuration restoration section."""
+        config_lines = []
+
+        # Add shell configuration
+        if system_config.shell:
+            config_lines.append(f"log_info \"Setting user shell to {system_config.shell}...\"")
+            config_lines.append(f"chsh -s /bin/{system_config.shell} || log_warn \"Failed to set shell\"")
+
+        # Add terminal configuration (if detected)
+        if system_config.terminal and system_config.terminal != "unknown":
+            config_lines.append(f"log_info \"Detected terminal: {system_config.terminal}\"")
+            config_lines.append("# Note: Terminal configuration may need manual setup")
+
+        # Add environment variables
+        if system_config.environment_vars:
+            config_lines.append("log_info \"Setting environment variables...\"")
+            for var, value in system_config.environment_vars.items():
+                if var == "PATH":
+                    # Handle PATH specially to avoid overriding system PATH
+                    config_lines.append(f"export {var}=\"{value}:$PATH\"")
+                else:
+                    config_lines.append(f"export {var}=\"{value}\"")
+            # Add to .bashrc if it exists
+            config_lines.append("if [ -f ~/.bashrc ]; then")
+            for var, value in system_config.environment_vars.items():
+                if var == "PATH":
+                    config_lines.append(f"    echo 'export {var}=\"{value}:$PATH\"' >> ~/.bashrc")
+                else:
+                    config_lines.append(f"    echo 'export {var}=\"{value}\"' >> ~/.bashrc")
+            config_lines.append("fi")
+
+        # Add config files restoration
+        if system_config.config_files:
+            config_lines.append("log_info \"Restoring configuration files...\"")
+            for file_path, content in system_config.config_files.items():
+                # Create directory if needed
+                dir_path = os.path.dirname(file_path)
+                if dir_path != "~":
+                    config_lines.append(f"mkdir -p {dir_path}")
+                # Write content using cat with heredoc
+                config_lines.append(f"cat > {file_path} << 'EOF'")
+                # Escape single quotes in content
+                escaped_content = content.replace("'", "'\"'\"'")
+                config_lines.append(escaped_content)
+                config_lines.append("EOF")
+                config_lines.append(f"log_info \"Restored {os.path.basename(file_path)}\"")
+
+        if config_lines:
+            section = f"""# Step 5: Restore System Configuration
+log_info "Restoring system configuration..."
+{"\n".join(config_lines)}
+log_info "System configuration restored"
+echo ""
+"""
+            return section
+        else:
+            return ""
 
     def _quote_packages(self, packages: List[str]) -> str:
         """

@@ -6,6 +6,7 @@ from typing import NoReturn
 
 from __version__ import get_version
 from core.detector import SystemInfo
+from core.config import ConfigDetector
 from core import packages
 from cmd.export import ScriptExporter
 from tui.interface import TUI
@@ -20,52 +21,49 @@ def main_menu() -> NoReturn:
     """
     Display and handle the main application menu.
 
-    This function recursively calls itself after each action,
-    creating an infinite loop until the user exits.
+    Loops until the user exits. Avoids recursion to prevent stack overflow.
     """
-    try:
-        TUI.clear()
-        sys_info = SystemInfo()
+    while True:
+        try:
+            TUI.clear()
+            sys_info = SystemInfo()
 
-        options = [
-            "1 - Export System (Generate .sh)",
-            "2 - View System Info",
-            "3 - About",
-            "0 - Exit",
-        ]
+            options = [
+                "1 - Export System (Generate .sh)",
+                "2 - View System Info",
+                "3 - About",
+                "0 - Exit",
+            ]
 
-        choice = TUI.run_fzf(options, prompt="DSXConfig >")
+            choice = TUI.run_fzf(options, prompt="DSXConfig >")
 
-        if not choice or "0" in choice:
-            logger.info("User exiting application")
-            print("\nThank you for using DSXConfig!")
+            if not choice or "0" in choice:
+                logger.info("User exiting application")
+                print("\nThank you for using DSXConfig!")
+                sys.exit(0)
+
+            if "1" in choice:
+                _handle_export(sys_info)
+
+            elif "2" in choice:
+                _handle_system_info(sys_info)
+
+            elif "3" in choice:
+                _handle_about()
+
+            else:
+                logger.warning(f"Unknown choice: {choice}")
+                input("\nInvalid option. Press Enter to continue...")
+
+        except KeyboardInterrupt:
+            logger.info("Application interrupted by user (Ctrl+C)")
+            print("\n\nApplication interrupted. Exiting...")
             sys.exit(0)
-
-        if "1" in choice:
-            _handle_export(sys_info)
-
-        elif "2" in choice:
-            _handle_system_info(sys_info)
-
-        elif "3" in choice:
-            _handle_about()
-
-        else:
-            logger.warning(f"Unknown choice: {choice}")
-            input("\nInvalid option. Press Enter to continue...")
-
-        main_menu()
-
-    except KeyboardInterrupt:
-        logger.info("Application interrupted by user (Ctrl+C)")
-        print("\n\nApplication interrupted. Exiting...")
-        sys.exit(0)
-    except SystemExit:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in main menu: {e}")
-        input("\nAn error occurred. Press Enter to continue...")
-        main_menu()
+        except SystemExit:
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in main menu: {e}")
+            input("\nAn error occurred. Press Enter to continue...")
 
 
 def _handle_export(sys_info: SystemInfo) -> None:
@@ -81,6 +79,16 @@ def _handle_export(sys_info: SystemInfo) -> None:
 
         exporter = ScriptExporter(sys_info)
         native, aur, flat = [], [], []
+
+        # Scan system configuration
+        config_detector = ConfigDetector()
+        system_config = None
+        if exporter.confirm("Save system configuration (shell, terminal, config files)?"):
+            print("Detecting system configuration...")
+            system_config = config_detector.detect_all()
+            print(f"   Shell: {system_config.shell}")
+            print(f"   Terminal: {system_config.terminal}")
+            print(f"   Config files: {len(system_config.config_files)}")
 
         # Scan native packages
         if exporter.confirm(f"Save {sys_info.pkg_mgr} packages?"):
@@ -102,23 +110,28 @@ def _handle_export(sys_info: SystemInfo) -> None:
             print(f"   Found: {len(flat)} applications")
 
         # Generate script
-        if not (native or aur or flat):
-            logger.warning("No packages selected for export")
-            print("\nNo packages selected. Returning to menu...")
+        if not (native or aur or flat or system_config):
+            logger.warning("No packages or config selected for export")
+            print("\nNo packages or configuration selected. Returning to menu...")
             input("Press Enter to continue...")
             return
 
-        file_path = exporter.generate_script(native, aur, flat)
+        file_path = exporter.generate_script(native, aur, flat, system_config)
 
         if file_path:
             print(f"\nScript generated: {file_path}")
             print("Summary:")
+            if system_config:
+                print(f"   • Shell: {system_config.shell}")
+                print(f"   • Terminal: {system_config.terminal}")
+                print(f"   • Config files: {len(system_config.config_files)}")
             print(f"   • {len(native)} native packages")
             print(f"   • {len(aur)} AUR packages")
             print(f"   • {len(flat)} Flatpak applications")
             logger.info(
                 f"Successfully generated script with "
-                f"{len(native)} native, {len(aur)} AUR, {len(flat)} Flatpak packages"
+                f"{len(native)} native, {len(aur)} AUR, {len(flat)} Flatpak packages, "
+                f"{len(system_config.config_files) if system_config else 0} config files"
             )
         else:
             print("\nFailed to generate script. Check logs for details.")
