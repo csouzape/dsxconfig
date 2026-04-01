@@ -118,6 +118,13 @@ PACKAGE_NAME_MAP: Dict[str, Dict[str, str]] = {
     "mysql": {"pacman": "mysql", "apt": "default-mysql-server", "dnf": "mysql-server"},
     "mariadb": {"pacman": "mariadb", "apt": "mariadb-server", "dnf": "mariadb-server"},
     "nodejs-legacy": {"pacman": "nodejs", "apt": "nodejs", "dnf": "nodejs"},
+    "code": {"pacman": "code", "apt": "code", "dnf": "code"},
+    "vscode": {"pacman": "visual-studio-code-bin", "apt": "code", "dnf": "code"},
+    "visual-studio-code": {"pacman": "visual-studio-code-bin", "apt": "code", "dnf": "code"},
+    "github-desktop": {"pacman": "github-desktop-bin", "apt": "github-desktop", "dnf": "github-desktop"},
+    "github-desktop-bin": {"pacman": "github-desktop-bin", "apt": "github-desktop", "dnf": "github-desktop"},
+    "spotify": {"pacman": "spotify", "apt": "spotify-client", "dnf": "spotify-client"},
+    "obsidian": {"pacman": "obsidian", "apt": "obsidian", "dnf": "obsidian"},
 }
 
 # FZF Configuration

@@ -86,6 +86,11 @@ class TestPackageDetection(unittest.TestCase):
         self.assertEqual(packages.map_package_name("teams", "apt"), "teams")
         self.assertEqual(packages.map_package_name("google-chrome-beta", "apt"), "google-chrome-beta")
         self.assertEqual(packages.map_package_name("microsoft-edge", "dnf"), "microsoft-edge-stable")
+        self.assertEqual(packages.map_package_name("code", "apt"), "code")
+        self.assertEqual(packages.map_package_name("vscode", "pacman"), "visual-studio-code-bin")
+        self.assertEqual(packages.map_package_name("github-desktop", "apt"), "github-desktop")
+        self.assertEqual(packages.map_package_name("spotify", "dnf"), "spotify-client")
+        self.assertEqual(packages.map_package_name("obsidian", "pacman"), "obsidian")
 
     def test_map_packages_for_manager(self):
         """Test bulk package mapping."""
@@ -154,6 +159,7 @@ class TestScriptExporter(unittest.TestCase):
         """Test AUR section generation."""
         section = self.exporter._build_aur_section(["yay", "paru"])
 
+        self.assertIn("install_aur_helper", section)
         self.assertIn("yay", section)
         self.assertIn("paru", section)
         self.assertIn("log_info", section)
