@@ -26,6 +26,7 @@ def main_menu() -> NoReturn:
     while True:
         try:
             TUI.clear()
+            TUI.print_ascii_header()
             sys_info = SystemInfo()
 
             options = [

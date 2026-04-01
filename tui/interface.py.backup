@@ -54,6 +54,10 @@ class TUI:
         print("=" * 80)
         print()
 
+
+class TUI:
+    """Terminal User Interface using fzf."""
+
     @staticmethod
     def run_fzf(
         items: List[str], prompt: str = "Select", multi: bool = False
