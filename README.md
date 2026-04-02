@@ -27,16 +27,16 @@ No full disk images. No 400GB clones. Just your packages and a restoration scrip
 
 ---
 
-## Features v2.0.0 ✨
+## Features v2.0.0 
 
-- **📱 Interactive TUI** — fzf-based interface for seamless navigation
-- **🎯 Smart detection** — automatically detects your distro and package manager
-- **Multi-source backup** — captures native packages, AUR packages, and Flatpak apps
-- **🔧 Cross-distro restore** — generates portable bash scripts that work across distros
-- **🛡️ Robust error handling** — comprehensive logging and error recovery
-- **📝 Type hints** — full Python type annotations for safety and IDE support
-- **🔐 Security** — safe package name handling with proper shell escaping
-- **🎨 Beautiful output** — colored logging and formatted terminal output
+- ** Interactive TUI** — fzf-based interface for seamless navigation
+- ** Smart detection** — automatically detects your distro and package manager
+- ** Multi-source backup** — captures native packages, AUR packages, and Flatpak apps
+- ** Cross-distro restore** — generates portable bash scripts that work across distros
+- ** Robust error handling** — comprehensive logging and error recovery
+- ** Type hints** — full Python type annotations for safety and IDE support
+- ** Security** — safe package name handling with proper shell escaping
+- ** Beautiful output** — colored logging and formatted terminal output
 
 ---
 
@@ -150,48 +150,7 @@ The restoration script includes:
 - Support for multiple AUR helpers (yay/paru)
 - Automatic flathub remote setup
 
-**Example:**
-```bash
-$ ./restore_dsx_20260331.sh
-================================================
-  DSXConfig System Restoration
-  Target: Arch Linux
-================================================
 
-[INFO] Updating system repositories...
-[INFO] Installing 142 native packages (pacman)...
-[INFO] Installing 8 AUR packages...
-[INFO] Installing 4 Flatpak applications...
-
-[INFO] Restoration complete!
-```
-
----
-
-## Project structure
-
-```
-dsxconfig/
-├── main.py                 # Main entry point
-├── __version__.py          # Version info
-├── constants.py            # Configuration constants
-├── logger.py               # Logging setup
-║
-├── core/
-│   ├── __init__.py
-│   ├── detector.py         # System detection (distro, pkg manager)
-│   └── packages.py         # Package collection functions
-│
-├── cmd/
-│   ├── __init__.py
-│   └── export.py           # Script generation and export
-│
-├── tui/
-│   ├── __init__.py
-│   └── interface.py        # fzf-based UI
-│
-└── README.md               # This file
-```
 
 ---
 
@@ -231,9 +190,9 @@ MIT © [csouzape](https://github.com/csouzape)
 ## Changelog
 
 ### v2.0.0 (31/03/2026)
-- 🎉 Complete Python implementation
-- ✨ Type hints and improved error handling
+-  Complete Python implementation
+-  Type hints and improved error handling
 - 🔧 Modular architecture with constants management
-- 📝 Full documentation and inline comments
-- 🚀 Improved performance and stability
+-  Full documentation and inline comments
+- Improved performance and stability
 
