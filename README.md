@@ -11,9 +11,9 @@
 
 **Backup and restore your Linux setup — fast, portable, cross-distro.**
 
-[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/csouzape/dsxconfig)](LICENSE)
-[![Powered By: DSX](https://img.shields.io/badge/part%20of-DSX%20ecosystem-cba6f7)](https://dsxtool.vercel.app)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/csouzape/dsxconfig/releases)
 
 </div>
 
@@ -21,86 +21,149 @@
 
 ## What is dsxconfig?
 
-`dsxconfig` is a TUI tool that exports your Linux system package setup — installed packages and Flatpak apps — into a single portable archive. Restore everything on a new machine in one run.
+`dsxconfig` is a TUI tool that exports your Linux system package setup — native packages, AUR packages, and Flatpak applications — into a portable bash script. Restore everything on a new machine in one run.
 
-No full disk images. No 400GB clones. Just your packages.
-
-Part of the **DSX** ecosystem — *Direct System eXtensions*.
+No full disk images. No 400GB clones. Just your packages and a restoration script.
 
 ---
 
-## Features
+## Features v2.0.0 ✨
 
-- **Interactive TUI** — navigate and select what to export
-- **Smart export** — captures only explicitly installed packages, not base dependencies
-- **Cross-distro restore** — installs what it can, logs what it can't
-- **Flatpak support** — exports and restores your Flatpak apps
-- **Single binary** — no runtime dependencies, written in Go
-- **Transparent** — generates `not_found.log` and a final summary
+- **📱 Interactive TUI** — fzf-based interface for seamless navigation
+- **🎯 Smart detection** — automatically detects your distro and package manager
+- **Multi-source backup** — captures native packages, AUR packages, and Flatpak apps
+- **🔧 Cross-distro restore** — generates portable bash scripts that work across distros
+- **🛡️ Robust error handling** — comprehensive logging and error recovery
+- **📝 Type hints** — full Python type annotations for safety and IDE support
+- **🔐 Security** — safe package name handling with proper shell escaping
+- **🎨 Beautiful output** — colored logging and formatted terminal output
+
+---
+
+## What's New in v2.0.0
+
+✓ Complete rewrite with type hints and proper error handling  
+✓ Centralized logging system with colored output  
+✓ Constants management for easier configuration  
+✓ Modular architecture with clear separation of concerns  
+✓ Improved script generation with error recovery  
+✓ AUR helper detection (yay/paru)  
+✓ Better package shell escaping to prevent injection attacks  
+✓ Comprehensive docstrings and inline documentation  
 
 ---
 
 ## Supported distros
 
-| Distro | Export | Restore |
-|--------|--------|---------|
-| Arch Linux | ✓ | ✓ |
-| Debian / Ubuntu / Mint | ✓ | ✓ |
-| Fedora | ✓ | ✓ |
+| Distro | Package Manager | Export | Restore |
+|--------|---|--------|---------|
+| Arch Linux | pacman | ✓ | ✓ |
+| Debian / Ubuntu / Mint | apt | ✓ | ✓ |
+| Fedora / RHEL / CentOS | dnf | ✓ | ✓ |
+
+---
+
+## Requirements
+
+- Python 3.8+
+- `fzf` — interactive fuzzy finder
+- `flatpak` (optional) — for Flatpak app support
+
+### Install dependencies
+
+**Arch Linux:**
+```bash
+sudo pacman -S fzf python
+```
+
+**Debian/Ubuntu:**
+```bash
+sudo apt install fzf python3
+```
+
+**Fedora:**
+```bash
+sudo dnf install fzf python3
+```
+
+**Install fzf:**
+```bash
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install
+```
 
 ---
 
 ## Installation
 
-### Via dsxtool
-`dsxconfig` is integrated into [dsxtool](https://dsxtool.vercel.app) — just select it from the menu and it will be cloned and launched automatically.
-
-### Standalone
-```bash
-curl -fsSL https://raw.githubusercontent.com/csouzape/dsxconfig/main/install.sh | bash
-```
-
-### Build from source
+### Clone and run
 ```bash
 git clone https://github.com/csouzape/dsxconfig.git
 cd dsxconfig
-go build -o dsxconfig .
-sudo mv dsxconfig /usr/local/bin/
+python3 main.py
+```
+
+### Create alias (optional)
+```bash
+alias dsxconfig="cd /path/to/dsxconfig && python3 main.py"
 ```
 
 ---
 
 ## Usage
 
-Launch the TUI:
+Launch the application:
 ```bash
-dsxconfig
+python3 main.py
 ```
 
-From the TUI you can:
-- **Export** — select packages and Flatpak apps to backup
-- **Restore** — point to an existing archive and restore packages/apps
+### Interactive menu:
+```
+DSXConfig >
+1 - Export System (Generate .sh)
+2 - View System Info
+3 - About
+0 - Exit
+```
+
+### Export workflow:
+1. Select "Export System"
+2. Choose which package types to backup (native, AUR, Flatpak)
+3. Script is generated as `restore_dsx_YYYYMMDD.sh`
+4. Transfer script to your new system and run it
+
+### Restore on new system:
+```bash
+chmod +x restore_dsx_*.sh
+./restore_dsx_*.sh
+```
 
 ---
 
-## Export archive format
+## Generated script features
 
-``` 
-dsxconfig-2026-03-15.tar.gz
-└── metadata.json       # distro, date, hostname, version, packages, aur, flatpak
-```
+The restoration script includes:
+- Automatic system update
+- Safe package installation with `--needed` flag
+- Error handling and logging
+- Colored output (INFO, WARN, ERROR)
+- Support for multiple AUR helpers (yay/paru)
+- Automatic flathub remote setup
 
----
+**Example:**
+```bash
+$ ./restore_dsx_20260331.sh
+================================================
+  DSXConfig System Restoration
+  Target: Arch Linux
+================================================
 
-## Restore summary
+[INFO] Updating system repositories...
+[INFO] Installing 142 native packages (pacman)...
+[INFO] Installing 8 AUR packages...
+[INFO] Installing 4 Flatpak applications...
 
-At the end of a restore run, dsxconfig shows:
-
-```
-  ✓  142 packages installed
-  -  36 packages already installed (skipped)
-  ✓  9 Flatpak apps installed
-  ✗  8 packages not found → see not_found.log
+[INFO] Restoration complete!
 ```
 
 ---
@@ -109,28 +172,68 @@ At the end of a restore run, dsxconfig shows:
 
 ```
 dsxconfig/
-├── main.go
-├── cmd/
-│   ├── export.go
-│   └── restore.go
+├── main.py                 # Main entry point
+├── __version__.py          # Version info
+├── constants.py            # Configuration constants
+├── logger.py               # Logging setup
+║
 ├── core/
-│   ├── detect.go       # distro detection
-│   ├── packages.go     # package list export/install
-│   ├── flatpak.go      # flatpak export/install
-│   └── mapping.go      # cross-distro package name mapping
+│   ├── __init__.py
+│   ├── detector.py         # System detection (distro, pkg manager)
+│   └── packages.py         # Package collection functions
+│
+├── cmd/
+│   ├── __init__.py
+│   └── export.py           # Script generation and export
+│
 ├── tui/
-│   └── ui.go           # interactive TUI
-└── install.sh          # standalone installer
+│   ├── __init__.py
+│   └── interface.py        # fzf-based UI
+│
+└── README.md               # This file
+```
+
+---
+
+## Troubleshooting
+
+### "fzf not found"
+Install fzf: https://github.com/junegunn/fzf#installation
+
+### "No supported package manager found"
+Your distro may not be supported. Edit `constants.py` to add support.
+
+### "No packages found"
+Run with logging enabled to see what commands are failing:
+```python
+# Edit logger.py and change LOG_LEVEL to "DEBUG"
 ```
 
 ---
 
 ## Contributing
 
-Issues and PRs are welcome. See [contributing.md](contributing.md).
+Issues and PRs are welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
 ## License
 
 MIT © [csouzape](https://github.com/csouzape)
+
+---
+
+## Changelog
+
+### v2.0.0 (31/03/2026)
+- 🎉 Complete Python implementation
+- ✨ Type hints and improved error handling
+- 🔧 Modular architecture with constants management
+- 📝 Full documentation and inline comments
+- 🚀 Improved performance and stability
+

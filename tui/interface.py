@@ -1,0 +1,178 @@
+"""Terminal User Interface module using fzf."""
+
+import subprocess
+import os
+import json
+from typing import List, Optional, Union
+from urllib.request import urlopen
+from urllib.error import URLError
+from constants import FZF_CONFIG, APP_NAME, APP_VERSION
+from logger import get_logger
+
+logger = get_logger(__name__)
+
+__all__ = ["TUI"]
+
+
+class TUI:
+    """Terminal User Interface using fzf."""
+
+    @staticmethod
+    def get_latest_version() -> str:
+        """
+        Get the latest version from GitHub releases.
+
+        Returns:
+            Latest version string or current version if unable to fetch
+        """
+        try:
+            url = "https://api.github.com/repos/csouzape/dsxconfig/releases/latest"
+            with urlopen(url, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                return data.get("tag_name", APP_VERSION)
+        except (URLError, json.JSONDecodeError, KeyError) as e:
+            logger.debug(f"Failed to fetch latest version: {e}")
+            return APP_VERSION
+
+    @staticmethod
+    def print_ascii_header() -> None:
+        """
+        Print DSXCONFIG ASCII art header with version info.
+        """
+        ascii_art = """
+██████╗ ███████╗██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+██╔══██╗██╔════╝╚██╗██╔╝██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
+██║  ██║███████╗ ╚███╔╝ ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+██║  ██║╚════██║ ██╔██╗ ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+██████╔╝███████║██╔╝ ██╗╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+        """
+
+        version = TUI.get_latest_version()
+        print(ascii_art)
+        print(f"{'Versão: ' + version:>70}")
+        print("=" * 80)
+        print()
+
+    @staticmethod
+    def run_fzf(
+        items: List[str], prompt: str = "Select", multi: bool = False
+    ) -> Optional[Union[str, List[str]]]:
+        """
+        Run fzf with custom DSXConfig styling.
+
+        Args:
+            items: List of strings to display in fzf
+            prompt: Text to show in the prompt
+            multi: Allow multiple selection (TAB)
+
+        Returns:
+            Selected string, list of strings (if multi=True), or None if cancelled
+
+        Raises:
+            FileNotFoundError: If fzf is not installed
+        """
+        if not items:
+            logger.warning("No items provided to fzf")
+            return None
+
+        try:
+            input_str = "\n".join(items)
+
+            args = [
+                "fzf",
+                f"--prompt={prompt} ",
+                f"--height={FZF_CONFIG['height']}",
+                f"--layout={FZF_CONFIG['layout']}",
+                f"--border={FZF_CONFIG['border']}",
+                f"--pointer={FZF_CONFIG['pointer']}",
+                f"--marker={FZF_CONFIG['marker']}",
+                f"--color={FZF_CONFIG['color']}",
+                f"--header={FZF_CONFIG['header_single']}",
+            ]
+
+            if multi:
+                args.append("--multi")
+                header_idx = next(
+                    i for i, arg in enumerate(args) if arg.startswith("--header=")
+                )
+                args[header_idx] = f"--header={FZF_CONFIG['header_multi']}"
+
+            process = subprocess.run(
+                args,
+                input=input_str,
+                text=True,
+                capture_output=True,
+                timeout=60,
+            )
+
+            if process.returncode == 0:
+                result = process.stdout.strip()
+                if multi:
+                    return result.split("\n") if result else []
+                return result if result else None
+
+            logger.debug(f"fzf cancelled or errored (exit code: {process.returncode})")
+            return None
+
+        except subprocess.TimeoutExpired:
+            logger.error("fzf operation timed out")
+            return None
+        except FileNotFoundError:
+            logger.warning("fzf not found. Falling back to simple text selection.")
+            return TUI._simple_choice(items, prompt)
+        except Exception as e:
+            logger.error(f"Unexpected error in fzf: {e}")
+            return None
+
+    @staticmethod
+    def _simple_choice(items: List[str], prompt: str) -> Optional[str]:
+        """Simple selection fallback when fzf is unavailable."""
+        print("\n[fallback] fzf is not installed. Using standard input selection.")
+        for idx, item in enumerate(items, start=1):
+            print(f"  {idx}. {item}")
+        print("  0. Cancel")
+
+        try:
+            choice = input(f"{prompt} (enter number): ").strip()
+            if not choice.isdigit():
+                return None
+
+            index = int(choice)
+            if index <= 0 or index > len(items):
+                return None
+
+            return items[index - 1]
+        except (KeyboardInterrupt, EOFError):
+            return None
+
+    @staticmethod
+    def clear() -> None:
+        """
+        Clear the terminal screen.
+
+        Works on both POSIX (Linux, macOS) and Windows systems.
+        """
+        try:
+            os.system("clear" if os.name == "posix" else "cls")
+            logger.debug("Terminal screen cleared")
+        except Exception as e:
+            logger.warning(f"Failed to clear terminal: {e}")
+
+    @staticmethod
+    def print_header(title: str) -> None:
+        """
+        Print a formatted header with title.
+
+        Args:
+            title: Header text to display
+        """
+        width = 60
+        print(f"  {title.center(width - 4)}")
+        print("=" * width)
+        print()
+
+    @staticmethod
+    def print_separator() -> None:
+        """Print a separator line."""
+        print("-" * 60)
