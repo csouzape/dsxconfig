@@ -9,19 +9,19 @@
    ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
 ```
 
-# 🔧 DSXConfig — Save Your Linux Programs in One File
+#  DSXConfig — Save Your Linux Programs in One File
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/csouzape/dsxconfig)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/csouzape/dsxconfig/releases)
 
-**Part of the [DSXTool](https://github.com/csouzape/dsxtool) ecosystem** 🚀
+**Part of the [DSX](https://github.com/csouzape/dsxtool) ecosystem** 
 
 </div>
 
 ---
 
-## 🤔 What is DSXConfig?
+##  What is DSXConfig?
 
 Imagine you have a computer with **all your favorite programs installed**. Now you want to:
 - Switch to a new computer
@@ -33,12 +33,12 @@ Imagine you have a computer with **all your favorite programs installed**. Now y
 
 **DSXConfig does exactly that:** it **saves a list of all your programs** in a file that can be run on any other Linux computer to automatically install everything.
 
-### 💡 Simple Analogy:
+###  Simple Analogy:
 Think of it like a **shopping list** for your installation. Instead of remembering every program you have, DSXConfig creates a complete list that you can use as many times as you want.
 
 ---
 
-## 📦 What Programs Does It Save?
+##  What Programs Does It Save?
 
 DSXConfig saves **3 types of programs**:
 
@@ -50,26 +50,26 @@ DSXConfig saves **3 types of programs**:
 
 ---
 
-## 🚀 Part of DSXTool
+##  Part of DSXTool
 
 **DSXConfig is built into [DSXTool](https://github.com/csouzape/dsxtool)** — a comprehensive Linux management suite. You can use:
 
-- ✅ **Standalone** — Use DSXConfig directly with `python3 main.py`
-- ✅ **Integrated** — Use it as part of DSXTool for advanced features
-- ✅ **Full Control** — All features available in both modes
+-  **Standalone** — Use DSXConfig directly with `python3 main.py`
+-  **Integrated** — Use it as part of DSXTool for advanced features
+- **Full Control** — All features available in both modes
 
 Learn more at [DSXTool GitHub](https://github.com/csouzape/dsxtool)
 
 ---
 
-## ✨ What Makes It Special?
+##  What Makes It Special?
 
-✅ **Easy to use** — Interactive menus with fzf  
-✅ **Fast** — Automatic save and restore  
-✅ **Safe** — Doesn't touch system files  
-✅ **Portable** — Works on any Linux distribution  
-✅ **Automatic** — Just click and let it do the work  
-✅ **Cross-distro** — Ubuntu → Fedora → Arch (no problem!)  
+ **Easy to use** — Interactive menus with fzf  
+**Fast** — Automatic save and restore  
+**Safe** — Doesn't touch system files  
+**Portable** — Works on any Linux distribution  
+**Automatic** — Just click and let it do the work  
+**Cross-distro** — Ubuntu → Fedora → Arch (no problem!)  
 
 ---
 
@@ -77,9 +77,9 @@ Learn more at [DSXTool GitHub](https://github.com/csouzape/dsxtool)
 
 | Linux | Support |
 |-------|---------|
-| **Arch Linux** | ✅ Full Support |
-| **Ubuntu / Debian / Linux Mint** | ✅ Full Support |
-| **Fedora / Red Hat / CentOS** | ✅ Full Support |
+| **Arch Linux** |  Full Support |
+| **Ubuntu / Debian / Linux Mint** |  Full Support |
+| **Fedora / Red Hat / CentOS** |  Full Support |
 
 ---
 
