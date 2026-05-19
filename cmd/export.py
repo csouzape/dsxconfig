@@ -63,7 +63,7 @@ class ScriptExporter:
             return False
 
     def generate_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None, include_update: bool = False
     ) -> Optional[str]:
         """
         Generate restoration script with all collected data.
@@ -73,6 +73,7 @@ class ScriptExporter:
             aur_packages: List of AUR packages
             flatpaks: List of Flatpak applications
             system_config: Optional system configuration to include
+            include_update: Whether to include system update in the script
 
         Returns:
             Path to generated script, None if generation failed
@@ -88,7 +89,7 @@ class ScriptExporter:
             raise ValueError("flatpaks must be a list")
 
         try:
-            script_content = self._build_script(packages, aur_packages, flatpaks, system_config)
+            script_content = self._build_script(packages, aur_packages, flatpaks, system_config, include_update)
             self._write_script(script_content)
             logger.info(f"Script generated successfully: {self.filename}")
             return self.filename
@@ -97,7 +98,7 @@ class ScriptExporter:
             return None
 
     def _build_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None, include_update: bool = False
     ) -> str:
         """
         Build script content.
@@ -223,17 +224,47 @@ log_error() {{
 }}
 
 select_log_mode
+"""
 
-# Step 1: Update system
-log_info "Updating system repositories..."
-UPDATE_CMD=$(get_update_command)
-if ! eval "$UPDATE_CMD"; then
-    log_error "Failed to update system"
-    exit 1
+        # Add update section (optional)
+        if include_update:
+            script += """# Step 1: Update system
+ask_update() {{
+    if command -v fzf >/dev/null 2>&1; then
+        answer=$(printf "Sim\nNao" | fzf --no-multi --height 4 --border --prompt "Atualizar sistema? ")
+        [ "$answer" = "Sim" ] && UPDATE_SYSTEM=true || UPDATE_SYSTEM=false
+    else
+        read -p "Atualizar sistema? [s/N] " answer
+        if [[ "$answer" =~ ^[sS](im)?$ ]]; then
+            UPDATE_SYSTEM=true
+        else
+            UPDATE_SYSTEM=false
+        fi
+    fi
+}}
+
+ask_update
+
+if [ "$UPDATE_SYSTEM" = "true" ]; then
+    log_info "Atualizando repositorios do sistema..."
+    UPDATE_CMD=$(get_update_command)
+    if ! eval "$UPDATE_CMD"; then
+        log_error "Falha ao atualizar sistema"
+        exit 1
+    fi
+    log_info "Atualizacao do sistema concluida"
+else
+    log_warn "Pulando atualizacao do sistema"
 fi
-log_info "System update completed"
 echo ""
+"""
+        else:
+            script += """# Update system is optional (disabled)
+# To enable update, run: UPDATE_SYSTEM=true ./restore_YYYYMMDD.sh
+echo ""
+"""
 
+        script += """
 # Adaptive package mapping for cross-distro resiliency
 TARGET_PKG_MGR="$PKG_MGR"
 
