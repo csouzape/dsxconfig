@@ -9,75 +9,91 @@
    ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
 ```
 
-# 🔧 DSXConfig — Salve seus programas do Linux em um arquivo
+# 🔧 DSXConfig — Save Your Linux Programs in One File
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/csouzape/dsxconfig)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/csouzape/dsxconfig/releases)
 
+**Part of the [DSXTool](https://github.com/csouzape/dsxtool) ecosystem** 🚀
+
 </div>
 
 ---
 
-## 🤔 O que é DSXConfig?
+## 🤔 What is DSXConfig?
 
-Imagine que você tem um computador com **todos os seus programas favoritos instalados**. Agora você quer:
-- Mudar de computador
-- Reinstalar o Linux
-- Começar tudo do zero
+Imagine you have a computer with **all your favorite programs installed**. Now you want to:
+- Switch to a new computer
+- Reinstall Linux from scratch
+- Move to a different distribution
+- Share your setup with friends
 
-**Sem perder nenhum programa ou configuração!**
+**Without losing a single program!**
 
-**DSXConfig faz exatamente isso:** ele **salva uma lista com todos os seus programas** em um arquivo que pode ser executado em qualquer outro computador Linux para instalar tudo automaticamente.
+**DSXConfig does exactly that:** it **saves a list of all your programs** in a file that can be run on any other Linux computer to automatically install everything.
 
-### 💡 Analogia simples:
-Pense como se fosse uma **lista de compras** da sua instalação. Em vez de você lembrar de cada programa que tem, o DSXConfig faz uma lista completa e você pode usar essa lista quantas vezes quiser.
-
----
-
-## 📦 Quais programas ele salva?
-
-DSXConfig salva **3 tipos de programas**:
-
-| Tipo | O que é? | Exemplo |
-|------|----------|---------|
-| **Programas nativos** | Programas do gerenciador de pacotes do seu Linux | Firefox, Git, VS Code |
-| **AUR** (só Arch) | Programas extras da comunidade Arch Linux | Spotify, Discord |
-| **Flatpak** | Programas portáveis que funcionam em qualquer Linux | Blender, OBS |
+### 💡 Simple Analogy:
+Think of it like a **shopping list** for your installation. Instead of remembering every program you have, DSXConfig creates a complete list that you can use as many times as you want.
 
 ---
 
-## ✨ O que ele faz de especial?
+## 📦 What Programs Does It Save?
 
-✅ **Fácil de usar** — interface com menus interativos  
-✅ **Rápido** — salva e restaura tudo automaticamente  
-✅ **Seguro** — não mexe em arquivos do sistema  
-✅ **Portável** — funciona em qualquer distribuição Linux  
-✅ **Automático** — você só clica e ele faz o resto  
+DSXConfig saves **3 types of programs**:
 
----
-
-## 🖥️ Quais Linuxes funcionam?
-
-| Linux | Suporta? |
-|-------|----------|
-| **Arch Linux** | ✅ Funciona |
-| **Ubuntu / Debian / Linux Mint** | ✅ Funciona |
-| **Fedora / Red Hat / CentOS** | ✅ Funciona |
+| Type | What is it? | Examples |
+|------|-----------|----------|
+| **Native Packages** | Programs from your Linux package manager | Firefox, Git, VS Code |
+| **AUR** (Arch only) | Extra programs from Arch Linux community | Spotify, Discord |
+| **Flatpak** | Portable programs that work on any Linux | Blender, OBS |
 
 ---
 
-## 📋 Pré-requisitos (O que você precisa ter)
+## 🚀 Part of DSXTool
 
-Você só precisa de 2 coisas:
+**DSXConfig is built into [DSXTool](https://github.com/csouzape/dsxtool)** — a comprehensive Linux management suite. You can use:
 
-### 1️⃣ Python 3.8 ou superior
-A maioria dos Linuxes já vem com Python instalado. Para verificar:
+- ✅ **Standalone** — Use DSXConfig directly with `python3 main.py`
+- ✅ **Integrated** — Use it as part of DSXTool for advanced features
+- ✅ **Full Control** — All features available in both modes
+
+Learn more at [DSXTool GitHub](https://github.com/csouzape/dsxtool)
+
+---
+
+## ✨ What Makes It Special?
+
+✅ **Easy to use** — Interactive menus with fzf  
+✅ **Fast** — Automatic save and restore  
+✅ **Safe** — Doesn't touch system files  
+✅ **Portable** — Works on any Linux distribution  
+✅ **Automatic** — Just click and let it do the work  
+✅ **Cross-distro** — Ubuntu → Fedora → Arch (no problem!)  
+
+---
+
+## 🖥️ Supported Linux Distributions
+
+| Linux | Support |
+|-------|---------|
+| **Arch Linux** | ✅ Full Support |
+| **Ubuntu / Debian / Linux Mint** | ✅ Full Support |
+| **Fedora / Red Hat / CentOS** | ✅ Full Support |
+
+---
+
+## 📋 Requirements
+
+You need only **2 things**:
+
+### 1️⃣ Python 3.8+
+Most Linux distributions come with Python pre-installed. Check:
 ```bash
 python3 --version
 ```
 
-Se não tiver, instale:
+If not installed:
 
 **Arch Linux:**
 ```bash
@@ -94,8 +110,8 @@ sudo apt install python3
 sudo dnf install python3
 ```
 
-### 2️⃣ FZF (Ferramenta de busca interativa)
-É um programinha pequeno que deixa a interface bonita. Instale:
+### 2️⃣ FZF (Interactive Finder)
+A small tool that makes the interface interactive. Install it:
 
 **Arch Linux:**
 ```bash
@@ -114,38 +130,40 @@ sudo dnf install fzf
 
 ---
 
-## 🚀 Como instalar?
+## 🚀 Installation
 
-### Passo 1: Baixe o programa
+### Step 1: Download
 ```bash
 git clone https://github.com/csouzape/dsxconfig.git
 cd dsxconfig
 ```
 
-Se você não tem `git`, instale:
+If you don't have `git`:
 ```bash
 sudo apt install git    # Ubuntu/Debian
 sudo pacman -S git      # Arch
 sudo dnf install git    # Fedora
 ```
 
-### Passo 2: Pronto! Execute quando quiser
+### Step 2: Run
 ```bash
 python3 main.py
 ```
+
+That's it! No installation needed.
 
 ---
 
-## 📖 Como usar — Passo a Passo
+## 📖 How to Use — Step by Step
 
-### 🎯 Objetivo 1: Salvar seus programas
+### 🎯 Goal 1: Save Your Programs
 
-#### Passo 1: Abra o programa
+#### Step 1: Launch the program
 ```bash
 python3 main.py
 ```
 
-Você verá uma tela assim:
+You'll see a menu:
 ```
 ================================================
   DSXConfig System Restoration
@@ -159,141 +177,229 @@ DSXConfig >
   0 - Exit
 ```
 
-#### Passo 2: Escolha "Export System"
-Aperte **1** e depois **Enter**
+> 📸 **Screenshot Tip:** This is a good place to take a screenshot of the main menu for documentation.
 
-#### Passo 3: Selecione quais programas quer salvar
+#### Step 2: Choose "Export System"
+Press **1** and then **Enter**
 
-O programa vai perguntar:
-- "Salvar programas do apt?" → Escolha **Sim** para salvar programas principais
-- "Salvar programas AUR?" → Escolha **Sim** se estiver no Arch Linux
-- "Salvar Flatpak?" → Escolha **Sim** se tiver Flatpak instalado
+#### Step 3: Select which programs to save
 
-#### Passo 4: Salve o arquivo
-O programa vai criar um arquivo chamado **`restore_dsx_20260519.sh`**
+The program will ask:
+- **"Save native packages?"** → Choose **Yes** to save main programs
+- **"Save AUR packages?"** → Choose **Yes** if you're on Arch Linux
+- **"Save Flatpak applications?"** → Choose **Yes** if you have Flatpak
 
-**Pronto! Você salvou todos os seus programas em um arquivo!**
+> 📸 **Screenshot Tip:** Take a screenshot of the selection prompts to show how interactive the process is.
+
+#### Step 4: Save the file
+The program creates a file named **`restore_dsx_20260519.sh`**
+
+**Done! All your programs are saved in one file!**
 
 ---
 
-### 🔄 Objetivo 2: Restaurar seus programas em outro computador
+### 🔄 Goal 2: Restore Programs on Another Computer
 
-#### Passo 1: Copie o arquivo
-Copie o arquivo `restore_dsx_*.sh` para um **pendrive** ou **nuvem** e leve para seu novo computador.
+#### Step 1: Copy the file
+Copy the `restore_dsx_*.sh` file to a **USB stick** or **cloud storage** and transfer it to your new computer.
 
-#### Passo 2: Dê permissão ao arquivo
-Abra um terminal e digite:
+#### Step 2: Give execute permission
+Open a terminal and type:
 ```bash
 chmod +x restore_dsx_*.sh
 ```
 
-(Isso permite que o arquivo seja executado)
+(This allows the file to be executed)
 
-#### Passo 3: Execute o arquivo
+#### Step 3: Run the file
 ```bash
 ./restore_dsx_*.sh
 ```
 
-O programa vai:
-1. 🔄 Perguntar se quer atualizar o sistema (você escolhe)
-2. 📦 Instalar todos os seus programas automaticamente
-3. ✅ Mostrar o progresso da instalação
-4. 🎉 Avisar quando tudo estiver pronto
+The program will:
+1. 🔄 Ask if you want to update the system (you choose)
+2. 📦 Install all your programs automatically
+3. ✅ Show installation progress
+4. 🎉 Notify you when everything is done
 
-**Pronto! Todos os seus programas foram instalados!**
+> 📸 **Screenshot Tip:** Capture the progress output showing packages being installed. This demonstrates the automation in action.
 
----
-
-## ❓ Dúvidas Frequentes
-
-### P: Eu perco meus dados?
-**R:** Não! DSXConfig só **salva a lista de programas**, não toca em seus arquivos ou documentos.
-
-### P: Preciso ser administrador (root)?
-**R:** Sim, quando for **instalar** os programas você vai precisar de permissões de administrador. O programa vai pedir a senha quando necessário.
-
-### P: Posso usar o arquivo em outra distribuição Linux?
-**R:** **Sim!** Um arquivo de um Ubuntu pode ser usado em Fedora, Arch, etc. O programa automaticamente adapta os nomes dos programas para cada Linux.
-
-### P: E se um programa não existir em outro Linux?
-**R:** O programa avisa e tenta continuar com os outros. Alguns programas podem precisar ser instalados manualmente (mas são raros).
-
-### P: Quanto tempo demora?
-**R:** Depende de quantos programas você tem e da sua internet. De 5 minutos até alguns anos 😄
-
-### P: Posso editar o arquivo depois?
-**R:** **Sim!** Abra o arquivo `.sh` com qualquer editor de texto e remova linhas dos programas que não quer instalar.
-
-### P: O que é esse "FZF" que preciso instalar?
-**R:** É um programa que deixa a interface mais legal com menus interativos. Sem ele, funciona mas fica bem mais chato 😅
-
-### P: Posso usar isso em servidores?
-**R:** **Sim!** DSXConfig funciona muito bem em servidores para clonar instalações de múltiplas máquinas.
+**Done! All your programs are installed!**
 
 ---
 
-## 🔧 Se algo der errado
+## ❓ Frequently Asked Questions
 
-### Erro: "fzf not found"
+### Q: Will I lose my data?
+**A:** No! DSXConfig only **saves the list of programs**, not your files or documents.
+
+### Q: Do I need to be an administrator?
+**A:** Yes, when **installing** programs you'll need admin permissions. The program will ask for your password when needed.
+
+### Q: Can I use the file on a different Linux distribution?
+**A:** **Yes!** A file from Ubuntu can be used on Fedora, Arch, etc. The program automatically adapts program names for each distribution.
+
+### Q: What if a program doesn't exist on another Linux?
+**A:** The program warns you and tries to continue with others. Most programs are available everywhere, so this is rare.
+
+### Q: How long does it take?
+**A:** Depends on how many programs you have and your internet speed. Usually 5-30 minutes.
+
+### Q: Can I edit the file afterward?
+**A:** **Yes!** Open the `.sh` file with any text editor and remove lines for programs you don't want to install.
+
+### Q: What if I don't want to install everything?
+**A:** You have 2 options:
+1. Edit the file and remove programs you don't want
+2. Let it run and skip individual installations when prompted
+
+### Q: Can I use this on servers?
+**A:** **Yes!** DSXConfig works great on servers for cloning installations across multiple machines.
+
+### Q: Will this work on different desktop environments (KDE, GNOME, etc.)?
+**A:** **Yes!** It only installs programs, not desktop environments. It works regardless of your desktop.
+
+---
+
+## 🔧 Troubleshooting
+
+### Error: "fzf not found"
 ```bash
-# Instale fzf:
+# Install fzf:
 sudo apt install fzf      # Ubuntu/Debian
 sudo pacman -S fzf        # Arch
 sudo dnf install fzf      # Fedora
 ```
 
-### Erro: "No packages found"
-Isso significa que nenhum programa foi encontrado. Verifique se:
-1. Seu gerenciador de pacotes está funcionando
-2. Você tem internet conectada
-3. Tente executar: `sudo pacman -Q` (Arch) ou `apt list --installed` (Ubuntu)
+### Error: "No packages found"
+This means no programs were detected. Verify:
+1. Your package manager is working
+2. You have internet connection
+3. Try: `sudo pacman -Q` (Arch) or `apt list --installed` (Ubuntu)
 
-### Erro: "Permission denied"
-Execute com `sudo`:
+### Error: "Permission denied"
+Run with sudo:
 ```bash
 sudo python3 main.py
 ```
 
----
+### The script fails to restore a program
+Some programs might have different names or not be available. The script will:
+- Try to find an alternative
+- Skip if not available
+- Continue with the next program
 
-## 🎓 Exemplos de uso prático
-
-### Exemplo 1: Mudar de notebook
-1. No notebook antigo, execute `python3 main.py` e escolha "Export"
-2. Salve o arquivo em um pendrive
-3. No notebook novo, execute o arquivo e pronto!
-
-### Exemplo 2: Reinstalar o Linux
-1. Antes de reinstalar, rode a exportação
-2. Salve o arquivo em um lugar seguro (nuvem, pendrive, email)
-3. Depois de reinstalar, rode o arquivo e recupere tudo
-
-### Exemplo 3: Ambiente de desenvolvimento
-Se você tem um ambiente de desenvolvimento configurado, pode clonar tudo para outros computadores com um comando.
+You can manually install problematic programs later.
 
 ---
 
-## 📝 Changelog
+## 💡 Practical Use Cases
 
-### v2.0.0 (19/05/2026)
-- ✅ Interface melhorada e didática
-- ✅ Atualização opcional do sistema
-- ✅ Melhor detecção de programas
-- ✅ Compatibilidade com mais Linuxes
+### Case 1: New Computer Setup
+1. On your old computer, run `python3 main.py` and choose "Export"
+2. Save the file to a USB stick
+3. On your new computer, run the file and everything is installed!
+
+### Case 2: Fresh Linux Installation
+1. Before reinstalling, create a backup
+2. Save the file to cloud storage or USB
+3. After reinstalling, run the file and restore everything
+
+### Case 3: Development Environment Setup
+Clone your entire development setup to other machines with one command.
+
+### Case 4: Lab/School Machines
+Set up multiple computers identically without manual installation.
 
 ---
 
-## 📄 Licença
+## 📸 Screenshots & Documentation
+
+For better documentation, here are recommended places to take screenshots:
+
+| Location | Why | Impact |
+|----------|-----|--------|
+| **Main Menu** | Shows the interface is simple and friendly | Shows ease of use |
+| **Selection Prompts** | Demonstrates interactive choices | Highlights user control |
+| **Progress Output** | Shows automation in action | Proves efficiency |
+| **Restored System** | Final result with all programs | Demonstrates success |
+
+> Tip: Use tools like `gnome-screenshot`, `flameshot`, or `scrot` to capture screenshots.
+
+---
+
+## 🔄 Integration with DSXTool
+
+DSXConfig is part of the DSXTool ecosystem and can be:
+
+- **Used independently** — Run directly from this repo
+- **Integrated into DSXTool** — Access from DSXTool's main interface
+- **Combined with other tools** — Works with DSXTool's other utilities
+
+For DSXTool integration, see: [https://github.com/csouzape/dsxtool](https://github.com/csouzape/dsxtool)
+
+---
+
+## 📝 Generated Restoration Script
+
+The generated `.sh` file includes:
+
+- ✅ Automatic system detection
+- ✅ Optional system update
+- ✅ Safe package installation with `--needed` flag
+- ✅ Error handling and logging
+- ✅ Colored output (INFO, WARN, ERROR)
+- ✅ Support for multiple AUR helpers (yay/paru)
+- ✅ Automatic Flathub setup for Flatpak
+- ✅ Cross-distro package mapping
+
+---
+
+## 📊 Version History
+
+### v2.0.0 (May 19, 2026)
+- ✅ Enhanced and educational documentation
+- ✅ Optional system updates
+- ✅ Improved package detection
+- ✅ Better cross-distro compatibility
+- ✅ Interactive configuration options
+- ✅ DSXTool integration support
+
+### Features:
+- Full type hints in Python code
+- Comprehensive error handling
+- Modular architecture
+- Color-coded logging
+- Security-focused design
+
+---
+
+## 🤝 Contributing
+
+Found a bug or have an idea? Help is welcome!
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add your feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+---
+
+## 📄 License
 
 MIT © [csouzape](https://github.com/csouzape)
 
 ---
 
-## 🤝 Quer contribuir?
+## 🙋 Need Help?
 
-Achou um bug ou tem uma ideia? Abra uma **Issue** ou faça um **Pull Request**!
+- 📖 **Documentation**: Check this README
+- 🐛 **Found a bug?**: [Open an Issue](https://github.com/csouzape/dsxconfig/issues)
+- 💬 **Have a question?**: [Start a Discussion](https://github.com/csouzape/dsxconfig/discussions)
+- 🔗 **More tools**: Visit [DSXTool](https://github.com/csouzape/dsxtool)
+- 🌐 **Portuguese version**: [README_PT.md](README_PT.md)
 
 ---
 
-**Dúvidas?** Abra uma [Issue](https://github.com/csouzape/dsxconfig/issues) e vamos ajudar! 😊
-
+**Happy backing up! 🎉**
