@@ -648,10 +648,6 @@ echo ""
         if flatpaks:
             script += self._build_flatpak_section(flatpaks)
 
-        # Add system configuration section
-        if system_config:
-            script += self._build_config_section(system_config)
-
         # Footer
         script += """
 echo ""
@@ -752,65 +748,6 @@ else
 fi
 echo ""
 """
-
-    def _build_config_section(self, system_config: SystemConfig) -> str:
-        """Build system configuration restoration section."""
-        config_lines = []
-
-        # Add shell configuration
-        if system_config.shell:
-            config_lines.append(f"log_info \"Setting user shell to {system_config.shell}...\"")
-            config_lines.append(f"chsh -s /bin/{system_config.shell} || log_warn \"Failed to set shell\"")
-
-        # Add terminal configuration (if detected)
-        if system_config.terminal and system_config.terminal != "unknown":
-            config_lines.append(f"log_info \"Detected terminal: {system_config.terminal}\"")
-            config_lines.append("# Note: Terminal configuration may need manual setup")
-
-        # Add environment variables
-        if system_config.environment_vars:
-            config_lines.append("log_info \"Setting environment variables...\"")
-            for var, value in system_config.environment_vars.items():
-                if var == "PATH":
-                    # Handle PATH specially to avoid overriding system PATH
-                    config_lines.append(f"export {var}=\"{value}:$PATH\"")
-                else:
-                    config_lines.append(f"export {var}=\"{value}\"")
-            # Add to .bashrc if it exists
-            config_lines.append("if [ -f ~/.bashrc ]; then")
-            for var, value in system_config.environment_vars.items():
-                if var == "PATH":
-                    config_lines.append(f"    echo 'export {var}=\"{value}:$PATH\"' >> ~/.bashrc")
-                else:
-                    config_lines.append(f"    echo 'export {var}=\"{value}\"' >> ~/.bashrc")
-            config_lines.append("fi")
-
-        # Add config files restoration
-        if system_config.config_files:
-            config_lines.append("log_info \"Restoring configuration files...\"")
-            for file_path, content in system_config.config_files.items():
-                # Create directory if needed
-                dir_path = os.path.dirname(file_path)
-                if dir_path != "~":
-                    config_lines.append(f"mkdir -p {dir_path}")
-                # Write content using cat with heredoc
-                config_lines.append(f"cat > {file_path} << 'EOF'")
-                # Escape single quotes in content
-                escaped_content = content.replace("'", "'\"'\"'")
-                config_lines.append(escaped_content)
-                config_lines.append("EOF")
-                config_lines.append(f"log_info \"Restored {os.path.basename(file_path)}\"")
-
-        if config_lines:
-            section = f"""# Step 5: Restore System Configuration
-log_info "Restoring system configuration..."
-{"\n".join(config_lines)}
-log_info "System configuration restored"
-echo ""
-"""
-            return section
-        else:
-            return ""
 
     def _quote_packages(self, packages: List[str]) -> str:
         """

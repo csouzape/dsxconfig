@@ -4,7 +4,6 @@ import os
 import pwd
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -18,15 +17,11 @@ class SystemConfig:
     Attributes:
         shell: Current user's shell
         terminal: Current terminal emulator
-        config_files: Dict of config file paths and their contents
-        environment_vars: Dict of important environment variables
     """
 
     def __init__(self) -> None:
         self.shell: str = ""
         self.terminal: str = ""
-        self.config_files: Dict[str, str] = {}
-        self.environment_vars: Dict[str, str] = {}
 
 class ConfigDetector:
     """
@@ -36,31 +31,7 @@ class ConfigDetector:
     across different Linux distributions.
     """
 
-    # Common config files to backup
-    COMMON_CONFIG_FILES = [
-        ".bashrc",
-        ".zshrc",
-        ".profile",
-        ".bash_profile",
-        ".config/starship.toml",  # Starship prompt
-        ".config/fish/config.fish",  # Fish shell
-        ".tmux.conf",  # Tmux
-        ".vimrc",  # Vim
-        ".config/nvim/init.vim",  # Neovim
-        ".config/Code/User/settings.json",  # VS Code
-        ".gitconfig",  # Git
-        ".ssh/config",  # SSH config (without keys)
-    ]
 
-    # Important environment variables to preserve
-    IMPORTANT_ENV_VARS = [
-        "EDITOR",
-        "VISUAL",
-        "LANG",
-        "LC_ALL",
-        "TZ",
-        "PATH",  # Custom PATH additions
-    ]
 
     def __init__(self) -> None:
         self.home = Path.home()
@@ -77,11 +48,8 @@ class ConfigDetector:
 
         self._detect_shell()
         self._detect_terminal()
-        self._collect_config_files()
-        self._collect_environment_vars()
 
         logger.info(f"Configuration detected: shell={self.config.shell}, terminal={self.config.terminal}")
-        logger.info(f"Found {len(self.config.config_files)} config files")
 
         return self.config
 
@@ -169,52 +137,3 @@ class ConfigDetector:
             pass
 
         return ""
-
-    def _collect_config_files(self) -> None:
-        """Collect contents of important config files."""
-        for config_path in self.COMMON_CONFIG_FILES:
-            full_path = self.home / config_path
-
-            if full_path.exists() and full_path.is_file():
-                try:
-                    # Skip binary files and very large files
-                    if full_path.stat().st_size > 1024 * 1024:  # 1MB limit
-                        logger.debug(f"Skipping large config file: {config_path}")
-                        continue
-
-                    with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
-                        content = f.read()
-
-                    # Skip if it looks like binary
-                    if "\0" in content:
-                        logger.debug(f"Skipping binary config file: {config_path}")
-                        continue
-
-                    self.config.config_files[str(full_path)] = content
-                    logger.debug(f"Collected config file: {config_path}")
-
-                except (OSError, UnicodeDecodeError) as e:
-                    logger.debug(f"Could not read config file {config_path}: {e}")
-
-    def _collect_environment_vars(self) -> None:
-        """Collect important environment variables."""
-        for var_name in self.IMPORTANT_ENV_VARS:
-            value = os.environ.get(var_name, "")
-            if value:
-                self.config.environment_vars[var_name] = value
-                logger.debug(f"Collected env var: {var_name}")
-
-    def get_backup_paths(self) -> List[Path]:
-        """
-        Get list of paths that should be backed up.
-
-        Returns:
-            List of Path objects for config files that exist
-        """
-        paths = []
-        for config_path in self.COMMON_CONFIG_FILES:
-            full_path = self.home / config_path
-            if full_path.exists():
-                paths.append(full_path)
-
-        return paths
