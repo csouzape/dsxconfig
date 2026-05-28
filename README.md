@@ -9,19 +9,19 @@
    ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
 ```
 
-# 🔧 DSXConfig — Save Your Linux Programs in One File
+#  DSXConfig — Save Your Linux Programs in One File
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/csouzape/dsxconfig)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/csouzape/dsxconfig/releases)
 
-**Part of the [DSXTool](https://github.com/csouzape/dsxtool) ecosystem** 🚀
+**Part of the [DSX](https://github.com/csouzape/dsxtool) ecosystem** 
 
 </div>
 
 ---
 
-## 🤔 What is DSXConfig?
+##  What is DSXConfig?
 
 Imagine you have a computer with **all your favorite programs installed**. Now you want to:
 - Switch to a new computer
@@ -33,12 +33,12 @@ Imagine you have a computer with **all your favorite programs installed**. Now y
 
 **DSXConfig does exactly that:** it **saves a list of all your programs** in a file that can be run on any other Linux computer to automatically install everything.
 
-### 💡 Simple Analogy:
+###  Simple Analogy:
 Think of it like a **shopping list** for your installation. Instead of remembering every program you have, DSXConfig creates a complete list that you can use as many times as you want.
 
 ---
 
-## 📦 What Programs Does It Save?
+##  What Programs Does It Save?
 
 DSXConfig saves **3 types of programs**:
 
@@ -50,44 +50,44 @@ DSXConfig saves **3 types of programs**:
 
 ---
 
-## 🚀 Part of DSXTool
+##  Part of DSXTool
 
 **DSXConfig is built into [DSXTool](https://github.com/csouzape/dsxtool)** — a comprehensive Linux management suite. You can use:
 
-- ✅ **Standalone** — Use DSXConfig directly with `python3 main.py`
-- ✅ **Integrated** — Use it as part of DSXTool for advanced features
-- ✅ **Full Control** — All features available in both modes
+-  **Standalone** — Use DSXConfig directly with `python3 main.py`
+-  **Integrated** — Use it as part of DSXTool for advanced features
+- **Full Control** — All features available in both modes
 
 Learn more at [DSXTool GitHub](https://github.com/csouzape/dsxtool)
 
 ---
 
-## ✨ What Makes It Special?
+##  What Makes It Special?
 
-✅ **Easy to use** — Interactive menus with fzf  
-✅ **Fast** — Automatic save and restore  
-✅ **Safe** — Doesn't touch system files  
-✅ **Portable** — Works on any Linux distribution  
-✅ **Automatic** — Just click and let it do the work  
-✅ **Cross-distro** — Ubuntu → Fedora → Arch (no problem!)  
+ **Easy to use** — Interactive menus with fzf  
+**Fast** — Automatic save and restore  
+**Safe** — Doesn't touch system files  
+**Portable** — Works on any Linux distribution  
+**Automatic** — Just click and let it do the work  
+**Cross-distro** — Ubuntu → Fedora → Arch (no problem!)  
 
 ---
 
-## 🖥️ Supported Linux Distributions
+##  Supported Linux Distributions
 
 | Linux | Support |
 |-------|---------|
-| **Arch Linux** | ✅ Full Support |
-| **Ubuntu / Debian / Linux Mint** | ✅ Full Support |
-| **Fedora / Red Hat / CentOS** | ✅ Full Support |
+| **Arch Linux** |  Full Support |
+| **Ubuntu / Debian / Linux Mint** |  Full Support |
+| **Fedora / Red Hat / CentOS** |  Full Support |
 
 ---
 
-## 📋 Requirements
+##  Requirements
 
 You need only **2 things**:
 
-### 1️⃣ Python 3.8+
+### Python 3.8+
 Most Linux distributions come with Python pre-installed. Check:
 ```bash
 python3 --version
@@ -110,7 +110,7 @@ sudo apt install python3
 sudo dnf install python3
 ```
 
-### 2️⃣ FZF (Interactive Finder)
+###  FZF (Interactive Finder)
 A small tool that makes the interface interactive. Install it:
 
 **Arch Linux:**
@@ -130,7 +130,7 @@ sudo dnf install fzf
 
 ---
 
-## 🚀 Installation
+##  Installation
 
 ### Step 1: Download
 ```bash
@@ -154,9 +154,9 @@ That's it! No installation needed.
 
 ---
 
-## 📖 How to Use — Step by Step
+## How to Use — Step by Step
 
-### 🎯 Goal 1: Save Your Programs
+###  Goal 1: Save Your Programs
 
 #### Step 1: Launch the program
 ```bash
@@ -177,7 +177,8 @@ DSXConfig >
   0 - Exit
 ```
 
-> 📸 **Screenshot Tip:** This is a good place to take a screenshot of the main menu for documentation.
+<img width="830" height="483" alt="Captura_de_tela_20260519_095900" src="https://github.com/user-attachments/assets/912eea79-b2d3-4af5-aa0b-6726c5b463f1" />
+
 
 #### Step 2: Choose "Export System"
 Press **1** and then **Enter**
@@ -189,7 +190,8 @@ The program will ask:
 - **"Save AUR packages?"** → Choose **Yes** if you're on Arch Linux
 - **"Save Flatpak applications?"** → Choose **Yes** if you have Flatpak
 
-> 📸 **Screenshot Tip:** Take a screenshot of the selection prompts to show how interactive the process is.
+<img width="956" height="798" alt="Captura_de_tela_20260519_100039" src="https://github.com/user-attachments/assets/ea30b64b-a608-44a1-b0e7-af3451f882e2" />
+
 
 #### Step 4: Save the file
 The program creates a file named **`restore_dsx_20260519.sh`**
@@ -198,7 +200,7 @@ The program creates a file named **`restore_dsx_20260519.sh`**
 
 ---
 
-### 🔄 Goal 2: Restore Programs on Another Computer
+### Goal 2: Restore Programs on Another Computer
 
 #### Step 1: Copy the file
 Copy the `restore_dsx_*.sh` file to a **USB stick** or **cloud storage** and transfer it to your new computer.
@@ -217,18 +219,19 @@ chmod +x restore_dsx_*.sh
 ```
 
 The program will:
-1. 🔄 Ask if you want to update the system (you choose)
-2. 📦 Install all your programs automatically
-3. ✅ Show installation progress
-4. 🎉 Notify you when everything is done
+1.  Ask if you want to update the system (you choose)
+2.  Install all your programs automatically
+3.  Show installation progress
+4.  Notify you when everything is done
 
-> 📸 **Screenshot Tip:** Capture the progress output showing packages being installed. This demonstrates the automation in action.
+<img width="540" height="307" alt="image" src="https://github.com/user-attachments/assets/0872d7d7-22aa-4ad1-935a-686e4dffd746" />
+
 
 **Done! All your programs are installed!**
 
 ---
 
-## ❓ Frequently Asked Questions
+##  Frequently Asked Questions
 
 ### Q: Will I lose my data?
 **A:** No! DSXConfig only **saves the list of programs**, not your files or documents.
@@ -261,7 +264,7 @@ The program will:
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Error: "fzf not found"
 ```bash
@@ -293,7 +296,7 @@ You can manually install problematic programs later.
 
 ---
 
-## 💡 Practical Use Cases
+##  Practical Use Cases
 
 ### Case 1: New Computer Setup
 1. On your old computer, run `python3 main.py` and choose "Export"
@@ -313,7 +316,7 @@ Set up multiple computers identically without manual installation.
 
 ---
 
-## 📸 Screenshots & Documentation
+##  Screenshots & Documentation
 
 For better documentation, here are recommended places to take screenshots:
 
@@ -328,7 +331,7 @@ For better documentation, here are recommended places to take screenshots:
 
 ---
 
-## 🔄 Integration with DSXTool
+##  Integration with DSXTool
 
 DSXConfig is part of the DSXTool ecosystem and can be:
 
@@ -340,30 +343,30 @@ For DSXTool integration, see: [https://github.com/csouzape/dsxtool](https://gith
 
 ---
 
-## 📝 Generated Restoration Script
+##  Generated Restoration Script
 
 The generated `.sh` file includes:
 
-- ✅ Automatic system detection
-- ✅ Optional system update
-- ✅ Safe package installation with `--needed` flag
-- ✅ Error handling and logging
-- ✅ Colored output (INFO, WARN, ERROR)
-- ✅ Support for multiple AUR helpers (yay/paru)
-- ✅ Automatic Flathub setup for Flatpak
-- ✅ Cross-distro package mapping
+-  Automatic system detection
+-  Optional system update
+-  Safe package installation with `--needed` flag
+-  Error handling and logging
+-  Colored output (INFO, WARN, ERROR)
+-  Support for multiple AUR helpers (yay/paru)
+-  Automatic Flathub setup for Flatpak
+-  Cross-distro package mapping
 
 ---
 
-## 📊 Version History
+##  Version History
 
 ### v2.0.0 (May 19, 2026)
-- ✅ Enhanced and educational documentation
-- ✅ Optional system updates
-- ✅ Improved package detection
-- ✅ Better cross-distro compatibility
-- ✅ Interactive configuration options
-- ✅ DSXTool integration support
+-  Enhanced and educational documentation
+-  Optional system updates
+-  Improved package detection
+-  Better cross-distro compatibility
+-  Interactive configuration options
+-  DSXTool integration support
 
 ### Features:
 - Full type hints in Python code
@@ -374,7 +377,7 @@ The generated `.sh` file includes:
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Found a bug or have an idea? Help is welcome!
 
@@ -386,20 +389,20 @@ Found a bug or have an idea? Help is welcome!
 
 ---
 
-## 📄 License
+##  License
 
 MIT © [csouzape](https://github.com/csouzape)
 
 ---
 
-## 🙋 Need Help?
+##  Need Help?
 
-- 📖 **Documentation**: Check this README
-- 🐛 **Found a bug?**: [Open an Issue](https://github.com/csouzape/dsxconfig/issues)
-- 💬 **Have a question?**: [Start a Discussion](https://github.com/csouzape/dsxconfig/discussions)
-- 🔗 **More tools**: Visit [DSXTool](https://github.com/csouzape/dsxtool)
-- 🌐 **Portuguese version**: [README_PT.md](README_PT.md)
+-  **Documentation**: Check this README
+-  **Found a bug?**: [Open an Issue](https://github.com/csouzape/dsxconfig/issues)
+-  **Have a question?**: [Start a Discussion](https://github.com/csouzape/dsxconfig/discussions)
+-  **More tools**: Visit [DSXTool](https://github.com/csouzape/dsxtool)
+-  **Portuguese version**: [README_PT.md](README_PT.md)
 
 ---
 
-**Happy backing up! 🎉**
+**Happy backing up!**
