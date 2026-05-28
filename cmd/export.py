@@ -228,7 +228,7 @@ select_log_mode
 
         # Add update section (optional)
         if include_update:
-            script += """# Step 1: Update system
+            script += f"""# Step 1: Update system
 ask_update() {{
     if command -v fzf >/dev/null 2>&1; then
         answer=$(printf "Sim\nNao" | fzf --no-multi --height 4 --border --prompt "Atualizar sistema? ")
@@ -264,7 +264,7 @@ echo ""
 echo ""
 """
 
-        script += """
+        script += f"""
 # Adaptive package mapping for cross-distro resiliency
 TARGET_PKG_MGR="$PKG_MGR"
 

@@ -58,6 +58,7 @@ INSTALL_COMMANDS: Dict[str, str] = {
     "centos": "sudo dnf install -y",
     "debian": "sudo apt install -y",
     "ubuntu": "sudo apt install -y",
+    "linuxmint": "sudo apt install -y",
 }
 
 # Cross-distro package name mappings (source -> target suggestion)
