@@ -78,8 +78,13 @@ class TUI:
 
         try:
             input_str = "\n".join(items)
+            header = FZF_CONFIG["header_multi"] if multi else FZF_CONFIG["header_single"]
 
-            args = [
+            # Full styled arguments. Some options (e.g. --border=rounded, the
+            # "border:" color attribute) are only supported by recent fzf
+            # releases. Older fzf shipped by Debian-based distros rejects them
+            # and exits with code 2, so we keep a minimal arg set as fallback.
+            styled_args = [
                 "fzf",
                 f"--prompt={prompt} ",
                 f"--height={FZF_CONFIG['height']}",
@@ -88,23 +93,41 @@ class TUI:
                 f"--pointer={FZF_CONFIG['pointer']}",
                 f"--marker={FZF_CONFIG['marker']}",
                 f"--color={FZF_CONFIG['color']}",
-                f"--header={FZF_CONFIG['header_single']}",
+                f"--header={header}",
             ]
-
+            minimal_args = [
+                "fzf",
+                f"--prompt={prompt} ",
+                f"--height={FZF_CONFIG['height']}",
+                f"--layout={FZF_CONFIG['layout']}",
+                f"--header={header}",
+            ]
             if multi:
-                args.append("--multi")
-                header_idx = next(
-                    i for i, arg in enumerate(args) if arg.startswith("--header=")
-                )
-                args[header_idx] = f"--header={FZF_CONFIG['header_multi']}"
+                styled_args.append("--multi")
+                minimal_args.append("--multi")
 
             process = subprocess.run(
-                args,
+                styled_args,
                 input=input_str,
                 text=True,
                 capture_output=True,
                 timeout=60,
             )
+
+            # fzf exit codes: 0 = selected, 1 = no match, 130 = cancelled
+            # (Esc/Ctrl-C), 2 = error (e.g. unsupported option on old fzf).
+            if process.returncode == 2:
+                logger.warning(
+                    f"fzf rejected styling options (exit 2): "
+                    f"{process.stderr.strip()}. Retrying with minimal options."
+                )
+                process = subprocess.run(
+                    minimal_args,
+                    input=input_str,
+                    text=True,
+                    capture_output=True,
+                    timeout=60,
+                )
 
             if process.returncode == 0:
                 result = process.stdout.strip()
@@ -112,7 +135,14 @@ class TUI:
                     return result.split("\n") if result else []
                 return result if result else None
 
-            logger.debug(f"fzf cancelled or errored (exit code: {process.returncode})")
+            if process.returncode == 2:
+                logger.error(
+                    f"fzf failed to run: {process.stderr.strip()}. "
+                    f"Falling back to simple text selection."
+                )
+                return TUI._simple_choice(items, prompt)
+
+            logger.debug(f"fzf cancelled by user (exit code: {process.returncode})")
             return None
 
         except subprocess.TimeoutExpired:
