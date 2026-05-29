@@ -1,7 +1,7 @@
 """DSXConfig constants and configuration."""
 
 from enum import Enum
-from typing import Dict
+from typing import Dict, List
 
 # Version
 APP_VERSION = "2.0.0"
@@ -59,6 +59,15 @@ INSTALL_COMMANDS: Dict[str, str] = {
     "debian": "sudo apt install -y",
     "ubuntu": "sudo apt install -y",
     "linuxmint": "sudo apt install -y",
+}
+
+# Commands to install runtime dependencies (e.g. fzf), keyed by the detected
+# package manager. fzf is required for the interactive menu but is not shipped
+# by default on Debian/Ubuntu/Mint, so DSXConfig installs it on demand.
+FZF_INSTALL_COMMANDS: Dict[str, List[str]] = {
+    "pacman": ["sudo", "pacman", "-S", "--needed", "--noconfirm", "fzf"],
+    "dnf": ["sudo", "dnf", "install", "-y", "fzf"],
+    "apt": ["sudo", "apt", "install", "-y", "fzf"],
 }
 
 # Cross-distro package name mappings (source -> target suggestion)

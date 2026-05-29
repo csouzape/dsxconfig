@@ -1,10 +1,13 @@
 """DSXConfig main entry point."""
 
 import os
+import shutil
+import subprocess
 import sys
 from typing import NoReturn
 
 from __version__ import get_version
+from constants import FZF_INSTALL_COMMANDS
 from core.detector import SystemInfo
 from core import packages
 from cmd.export import ScriptExporter
@@ -14,6 +17,57 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 __all__ = ["main_menu", "main"]
+
+
+def _ensure_fzf(sys_info: SystemInfo) -> None:
+    """
+    Make sure fzf is available, installing it via the system package manager
+    if needed.
+
+    fzf powers the interactive menu and is not shipped by default on
+    Debian/Ubuntu/Mint. When it is missing we offer to install it using the
+    detected package manager. If the user declines or the install fails, the
+    menu falls back to a simple numeric selection.
+
+    Args:
+        sys_info: SystemInfo instance with the detected package manager
+    """
+    if shutil.which("fzf"):
+        return
+
+    print("\nfzf is required for the interactive menu but was not found.")
+
+    cmd = FZF_INSTALL_COMMANDS.get(sys_info.pkg_mgr)
+    if not cmd:
+        logger.warning(f"No fzf install command for package manager: {sys_info.pkg_mgr}")
+        print(
+            f"Could not determine how to install fzf for '{sys_info.pkg_mgr}'.\n"
+            "Please install it manually. Falling back to simple text selection."
+        )
+        return
+
+    answer = input(f"Install it now with '{' '.join(cmd)}'? [Y/n] ").strip().lower()
+    if answer in ("n", "no", "nao", "não"):
+        logger.info("User declined fzf installation")
+        print("Skipping fzf install. Falling back to simple text selection.")
+        return
+
+    try:
+        logger.info(f"Installing fzf: {' '.join(cmd)}")
+        result = subprocess.run(cmd)
+        if result.returncode == 0 and shutil.which("fzf"):
+            print("fzf installed successfully!\n")
+            logger.info("fzf installed successfully")
+        else:
+            logger.error(f"fzf install failed (exit code {result.returncode})")
+            print(
+                "Failed to install fzf. Falling back to simple text selection."
+            )
+    except KeyboardInterrupt:
+        print("\nInstallation cancelled. Falling back to simple text selection.")
+    except Exception as e:
+        logger.error(f"Error installing fzf: {e}")
+        print(f"Error installing fzf: {e}. Falling back to simple text selection.")
 
 
 def main_menu() -> NoReturn:
@@ -194,6 +248,7 @@ def main() -> None:
     """
     try:
         logger.info(f"DSXConfig starting (version {get_version()})")
+        _ensure_fzf(SystemInfo())
         main_menu()
     except Exception as e:
         logger.critical(f"Fatal error: {e}")
