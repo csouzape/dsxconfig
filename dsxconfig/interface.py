@@ -1,6 +1,12 @@
+import os
 import shutil
 import subprocess
+import sys
 from typing import List, Optional
+
+if __name__ == "__main__" and __package__ is None:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    __package__ = "dsxconfig"
 
 from .detector import SystemDetector
 from .generator import RestoreScriptGenerator
@@ -56,8 +62,8 @@ def run_fzf_menu(options: List[str]) -> Optional[str]:
 def prompt_menu(options: List[str]) -> Optional[str]:
     print(ASCII_BANNER)
     print("Choose an action:")
-    for index, option in enumerate(options, start=1):
-        print(f"  {index}) {option}")
+    for option in options:
+        print(f"  {option}")
     print("")
 
     try:
