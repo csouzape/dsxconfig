@@ -82,7 +82,11 @@ def prompt_menu(options: List[str]) -> Optional[str]:
 
 def choose_action() -> Optional[str]:
     selection = run_fzf_menu(MENU_OPTIONS)
-    return selection or prompt_menu(MENU_OPTIONS)
+    if selection is not None:
+        return selection
+    if not shutil.which("fzf"):
+        return prompt_menu(MENU_OPTIONS)
+    return None
 
 
 def generate_script() -> None:
