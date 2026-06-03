@@ -163,7 +163,7 @@ def _handle_export(sys_info: SystemInfo) -> None:
         # Ask about system update
         include_update = exporter.confirm("Include system update in the script?")
 
-        file_path = exporter.generate_script(native, aur, flat, None, include_update)
+        file_path = exporter.generate_script(native, aur, flat, include_update)
 
         if file_path:
             print(f"\nScript generated: {file_path}")
