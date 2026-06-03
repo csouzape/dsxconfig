@@ -1,6 +1,12 @@
+import os
 import shutil
 import subprocess
+import sys
 from typing import List, Optional
+
+if __name__ == "__main__" and __package__ is None:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    __package__ = "dsxconfig"
 
 from .detector import SystemDetector
 from .generator import RestoreScriptGenerator
@@ -111,3 +117,7 @@ def main() -> None:
         show_db_preview()
     else:
         print("Exiting dsxconfig.")
+
+
+if __name__ == "__main__":
+    main()
