@@ -2,7 +2,12 @@
 
 import subprocess
 from typing import Dict, List
-from constants import PKG_MGR_COMMANDS, PACKAGE_NAME_MAP, IGNORED_PACKAGES
+from constants import (
+    PKG_MGR_COMMANDS,
+    PACKAGE_NAME_MAP,
+    IGNORED_PACKAGES,
+    SYSTEM_PACKAGE_PATTERNS,
+)
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -52,6 +57,24 @@ def map_packages_for_manager(packages: List[str], target_pkg_mgr: str) -> List[s
     return [map_package_name(pkg, target_pkg_mgr) for pkg in packages]
 
 
+def _is_ignored_package(package_name: str) -> bool:
+    """Determine whether a package should be excluded from exported app lists."""
+    normalized = package_name.strip().lower()
+    if normalized in IGNORED_PACKAGES:
+        return True
+
+    # Normalize package names to tokens for pattern matching.
+    tokens = set(normalized.replace("_", "-").split("-"))
+
+    if normalized in SYSTEM_PACKAGE_PATTERNS:
+        return True
+
+    if tokens.intersection(SYSTEM_PACKAGE_PATTERNS):
+        return True
+
+    return False
+
+
 def get_native_packages(pkg_mgr: str) -> List[str]:
     """
     Get list of explicitly installed native packages, filtering out system packages.
@@ -78,9 +101,11 @@ def get_native_packages(pkg_mgr: str) -> List[str]:
         all_packages = [line.strip() for line in result.stdout.splitlines() if line.strip()]
         
         # Filter out ignored packages (system base packages, kernels, drivers, etc.)
-        filtered_packages = [pkg for pkg in all_packages if pkg not in IGNORED_PACKAGES]
+        filtered_packages = [pkg for pkg in all_packages if not _is_ignored_package(pkg)]
         
-        logger.info(f"Found {len(all_packages)} total native packages, {len(filtered_packages)} after filtering ({pkg_mgr})")
+        logger.info(
+            f"Found {len(all_packages)} total native packages, {len(filtered_packages)} after filtering ({pkg_mgr})"
+        )
         return filtered_packages
 
     except subprocess.TimeoutExpired:

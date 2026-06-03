@@ -45,7 +45,7 @@ class TestPackageDetection(unittest.TestCase):
         """Test that system packages are properly filtered out."""
         # This test assumes we're on a system with pacman
         # We can't easily mock the subprocess calls, so we'll test the logic
-        from constants import IGNORED_PACKAGES
+        from constants import IGNORED_PACKAGES, SYSTEM_PACKAGE_PATTERNS
         
         # Test that IGNORED_PACKAGES contains expected system packages
         self.assertIn("base", IGNORED_PACKAGES)
@@ -58,6 +58,28 @@ class TestPackageDetection(unittest.TestCase):
         self.assertNotIn("zsh", IGNORED_PACKAGES)
         self.assertNotIn("firefox", IGNORED_PACKAGES)
         self.assertNotIn("gimp", IGNORED_PACKAGES)
+
+        # Test pattern-based ignored packages
+        self.assertIn("network", SYSTEM_PACKAGE_PATTERNS)
+        self.assertIn("pipewire", SYSTEM_PACKAGE_PATTERNS)
+        self.assertIn("dbus", SYSTEM_PACKAGE_PATTERNS)
+
+    def test_native_package_filter_helper(self):
+        """Test helper filtering of system vs user applications."""
+        self.assertTrue(packages._is_ignored_package("linux-firmware"))
+        self.assertTrue(packages._is_ignored_package("networkmanager"))
+        self.assertTrue(packages._is_ignored_package("pipewire-pulse"))
+        self.assertFalse(packages._is_ignored_package("firefox"))
+        self.assertFalse(packages._is_ignored_package("vlc"))
+
+    def test_get_native_packages_filters_system_components(self):
+        """Test native package collection filters out system components."""
+        mock_output = "linux-firmware\nnetworkmanager\nfirefox\nvlc\n"
+        mock_result = MagicMock(stdout=mock_output, returncode=0)
+
+        with patch("core.packages.subprocess.run", return_value=mock_result):
+            filtered = packages.get_native_packages("pacman")
+            self.assertEqual(sorted(filtered), ["firefox", "vlc"])
 
     def test_get_aur_packages_return_type(self):
         """Test that get_aur_packages returns a list."""
