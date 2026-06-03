@@ -15,7 +15,6 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.detector import SystemInfo
-from core.config import ConfigDetector, SystemConfig
 from core import packages
 from cmd.export import ScriptExporter
 from logger import get_logger
@@ -97,25 +96,6 @@ class TestPackageDetection(unittest.TestCase):
         mapped = packages.map_packages_for_manager(["python", "git"], "apt")
         self.assertIn("python3", mapped)
         self.assertIn("git", mapped)
-
-class TestConfigDetection(unittest.TestCase):
-    """Test configuration detection module."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.config_detector = ConfigDetector()
-
-    def test_config_detector_creation(self):
-        """Test ConfigDetector can be instantiated."""
-        self.assertIsNotNone(self.config_detector)
-        self.assertIsNotNone(self.config_detector.home)
-
-    def test_detect_all(self):
-        """Test full configuration detection."""
-        config = self.config_detector.detect_all()
-        self.assertIsInstance(config, SystemConfig)
-        # Should have detected shell and terminal
-        self.assertTrue(config.shell or config.terminal)
 
 class TestScriptExporter(unittest.TestCase):
     """Test script export functionality."""

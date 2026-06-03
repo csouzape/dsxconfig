@@ -3,7 +3,7 @@
 import os
 import shlex
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from constants import (
     UPDATE_COMMANDS,
     INSTALL_COMMANDS,
@@ -13,7 +13,6 @@ from constants import (
     SCRIPT_PERMISSIONS,
 )
 from core.detector import SystemInfo
-from core.config import SystemConfig
 from tui.interface import TUI
 from logger import get_logger
 
@@ -63,7 +62,7 @@ class ScriptExporter:
             return False
 
     def generate_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None, include_update: bool = False
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], include_update: bool = False
     ) -> Optional[str]:
         """
         Generate restoration script with all collected data.
@@ -72,7 +71,6 @@ class ScriptExporter:
             packages: List of native packages
             aur_packages: List of AUR packages
             flatpaks: List of Flatpak applications
-            system_config: Optional system configuration to include
             include_update: Whether to include system update in the script
 
         Returns:
@@ -89,7 +87,7 @@ class ScriptExporter:
             raise ValueError("flatpaks must be a list")
 
         try:
-            script_content = self._build_script(packages, aur_packages, flatpaks, system_config, include_update)
+            script_content = self._build_script(packages, aur_packages, flatpaks, include_update)
             self._write_script(script_content)
             logger.info(f"Script generated successfully: {self.filename}")
             return self.filename
@@ -98,7 +96,7 @@ class ScriptExporter:
             return None
 
     def _build_script(
-        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], system_config: Optional[SystemConfig] = None, include_update: bool = False
+        self, packages: List[str], aur_packages: List[str], flatpaks: List[str], include_update: bool = False
     ) -> str:
         """
         Build script content.
@@ -107,7 +105,6 @@ class ScriptExporter:
             packages: List of native packages
             aur_packages: List of AUR packages
             flatpaks: List of Flatpak applications
-            system_config: Optional system configuration to include
 
         Returns:
             Complete script content as string
